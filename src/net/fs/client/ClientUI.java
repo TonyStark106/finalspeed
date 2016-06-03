@@ -2,17 +2,39 @@
 
 package net.fs.client;
 
-import java.awt.AWTException;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import net.fs.rudp.Route;
+import net.fs.utils.LogOutputStream;
+import net.fs.utils.MLog;
+import net.fs.utils.Tools;
+import net.miginfocom.swing.MigLayout;
+import org.pcap4j.core.Pcaps;
+
+import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.ListCellRenderer;
+import javax.swing.SwingUtilities;
+import javax.swing.ToolTipManager;
+import javax.swing.UIManager;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Desktop;
 import java.awt.Font;
 import java.awt.Insets;
-import java.awt.MenuItem;
-import java.awt.PopupMenu;
 import java.awt.SystemTray;
 import java.awt.Toolkit;
-import java.awt.TrayIcon;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -37,35 +59,6 @@ import java.util.ArrayList;
 import java.util.Properties;
 import java.util.StringTokenizer;
 
-import javax.swing.BorderFactory;
-import javax.swing.ButtonGroup;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JScrollPane;
-import javax.swing.JTextField;
-import javax.swing.ListCellRenderer;
-import javax.swing.SwingUtilities;
-import javax.swing.ToolTipManager;
-import javax.swing.UIManager;
-
-import org.pcap4j.core.Pcaps;
-
-import net.fs.rudp.Route;
-import net.fs.utils.LogOutputStream;
-import net.fs.utils.MLog;
-import net.fs.utils.Tools;
-import net.miginfocom.swing.MigLayout;
-
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-
 public class ClientUI implements ClientUII, WindowListener {
 
     JFrame mainFrame;
@@ -87,8 +80,6 @@ public class ClientUI implements ClientUII, WindowListener {
     String offlineImg = "img/offline.png";
 
     String name = "FinalSpeed";
-
-    private TrayIcon trayIcon;
 
     private SystemTray tray;
 
@@ -135,15 +126,15 @@ public class ClientUI implements ClientUII, WindowListener {
     JRadioButton r_tcp, r_udp;
 
     String updateUrl;
-    
+
     boolean min=false;
-    
+
     LogFrame logFrame;
-    
+
     LogOutputStream los;
-    
+
     boolean tcpEnable=true;
-    
+
     {
         domain = "ip4a.com";
         homeUrl = "http://www.ip4a.com/?client_fs";
@@ -153,21 +144,20 @@ public class ClientUI implements ClientUII, WindowListener {
     ClientUI(final boolean isVisible,boolean min) {
     	this.min=min;
         setVisible(isVisible);
-        
+
         if(isVisible){
         	 los=new LogOutputStream(System.out);
              System.setOut(los);
              System.setErr(los);
         }
-        
-        
+
+
         systemName = System.getProperty("os.name").toLowerCase();
         MLog.info("System: " + systemName + " " + System.getProperty("os.version"));
         ui = this;
         mainFrame = new JFrame();
         mainFrame.setIconImage(Toolkit.getDefaultToolkit().getImage(logoImg));
         initUI();
-        checkQuanxian();
         loadConfig();
         mainFrame.setTitle("FinalSpeed 1.2");
         mainPanel = (JPanel) mainFrame.getContentPane();
@@ -287,36 +277,36 @@ public class ClientUI implements ClientUII, WindowListener {
         p1.add(text_serverAddress, "width 150::");
         text_serverAddress.setEditable(true);
         TextComponentPopupMenu.installToComponent(text_serverAddress);
-        
+
         ListCellRenderer renderer = new AddressCellRenderer();
         text_serverAddress.setRenderer(renderer);
         text_serverAddress.setEditable(true);
-        
+
         text_serverAddress.addActionListener(new ActionListener() {
-			
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				//System.out.println(text_serverAddress.getSelectedItem().toString());
 			}
 		});
-        
+
         for(int n=0;n<config.getRecentAddressList().size();n++){
         	text_serverAddress.addItem(config.getRecentAddressList().get(n));
         }
-        
+
         if(config.getRecentAddressList().size()==0){
         	text_serverAddress.setSelectedItem("");
         }
-        
+
         JButton button_removeAddress=createButton("删除");
         p1.add(button_removeAddress, "");
         button_removeAddress.addActionListener(new ActionListener() {
-			
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String address=text_serverAddress.getSelectedItem().toString();
 				if(!address.equals("")){
-					int result=JOptionPane.showConfirmDialog(mainFrame, "确定删除吗?","消息", JOptionPane.YES_NO_OPTION);
+					int result= JOptionPane.showConfirmDialog(mainFrame, "确定删除吗?","消息", JOptionPane.YES_NO_OPTION);
 					if(result==JOptionPane.OK_OPTION){
 						text_serverAddress.removeItem(address);
 						String selectText="";
@@ -372,7 +362,7 @@ public class ClientUI implements ClientUII, WindowListener {
             }
         });
 
-        
+
         JPanel pa2 = new JPanel();
         sp.add(pa2, "wrap");
         pa2.setLayout(new MigLayout("insets 0 0 0 0"));
@@ -382,12 +372,12 @@ public class ClientUI implements ClientUII, WindowListener {
         pa2.add(text_us, "width 80::");
         text_us.setHorizontalAlignment(JTextField.RIGHT);
         text_us.setEditable(false);
-        
-        
+
+
         JPanel sp2 = new JPanel();
         sp2.setLayout(new MigLayout("insets 0 0 0 0"));
         loginPanel.add(sp2, "align center,  wrap");
-        
+
         final JCheckBox cb=new JCheckBox("开机启动",config.isAutoStart());
         sp2.add(cb, "align center");
 		cb.addActionListener(new ActionListener(){
@@ -400,11 +390,11 @@ public class ClientUI implements ClientUII, WindowListener {
 			}
 
 		});
-		
+
 		JButton button_show_log=createButton("显示日志");
 		sp2.add(button_show_log,"wrap");
 		button_show_log.addActionListener(new ActionListener() {
-			
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if(logFrame==null){
@@ -412,7 +402,7 @@ public class ClientUI implements ClientUII, WindowListener {
 		             logFrame.setSize(700, 400);
 		             logFrame.setLocationRelativeTo(null);
 		             los.addListener(logFrame);
-		             
+
 		             if(los.getBuffer()!=null){
 		            	logFrame.showText(los.getBuffer().toString());
 		     			los.setBuffer(null);
@@ -458,12 +448,12 @@ public class ClientUI implements ClientUII, WindowListener {
                 saveConfig();
             }
         });
-        
 
-        
+
+
         stateText = new JLabel("");
         mainPanel.add(stateText, "align right ,wrap");
-        
+
 
         JPanel p5 = new JPanel();
         p5.setLayout(new MigLayout("insets 5 0 0 0 "));
@@ -476,7 +466,7 @@ public class ClientUI implements ClientUII, WindowListener {
         downloadSpeedField = new JLabel();
         downloadSpeedField.setHorizontalAlignment(JLabel.RIGHT);
         p5.add(downloadSpeedField, "width 130:: ,align right ");
-        
+
         updateUISpeed(0, 0, 0);
         setMessage(" ");
 
@@ -496,62 +486,7 @@ public class ClientUI implements ClientUII, WindowListener {
 
         mainFrame.setLocationRelativeTo(null);
 
-        PopupMenu trayMenu = new PopupMenu();
-        if(SystemTray.isSupported()){
-             mainFrame.addWindowListener(this);
-        	 tray = SystemTray.getSystemTray();
-             trayIcon = new TrayIcon(Toolkit.getDefaultToolkit().getImage(offlineImg), name, trayMenu);
-             trayIcon.setImageAutoSize(true);
-             ActionListener listener = new ActionListener() {
-                 public void actionPerformed(ActionEvent e) {
-                     mainFrame.toFront();
-                     setVisible(true);
-                     mainFrame.setVisible(true);
-                 }
-             };
-             trayIcon.addActionListener(listener);
-             trayIcon.addMouseListener(new MouseListener() {
-
-                 public void mouseClicked(MouseEvent arg0) {
-                 }
-
-                 public void mouseEntered(MouseEvent arg0) {
-                 }
-
-                 public void mouseExited(MouseEvent arg0) {
-                 }
-
-                 public void mousePressed(MouseEvent arg0) {
-                 }
-
-                 public void mouseReleased(MouseEvent arg0) {
-                 }
-
-             });
-
-             try {
-                 tray.add(trayIcon);
-             } catch (AWTException e1) {
-                 e1.printStackTrace();
-             }
-             MenuItem item3;
-             try {
-                 item3 = new MenuItem("Exit");
-                 //item3 = new MenuItem("Exit");
-                 ActionListener al = new ActionListener() {
-                     public void actionPerformed(ActionEvent e) {
-                         exit();
-                     }
-                 };
-                 item3.addActionListener(al);
-                 trayMenu.add(item3);
-
-             } catch (Exception e1) {
-                 e1.printStackTrace();
-             }
-        }else{
-        	mainFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-        }
+        mainFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
         boolean tcpEnvSuccess=true;
         checkFireWallOn();
@@ -627,7 +562,6 @@ public class ClientUI implements ClientUII, WindowListener {
             }
         }
 
-
         try {
             mapClient = new MapClient(this,tcpEnvSuccess);
         } catch (final Exception e1) {
@@ -685,9 +619,9 @@ public class ClientUI implements ClientUII, WindowListener {
             SpeedSetFrame sf = new SpeedSetFrame(ui, mainFrame);
         }
 
-        
+
     }
-    
+
     String getServerAddressFromConfig(){
     	 String server_addressTxt = config.getServerAddress();
          if (config.getServerAddress() != null && !config.getServerAddress().equals("")) {
@@ -794,31 +728,6 @@ public class ClientUI implements ClientUII, WindowListener {
                 }
             }
         }
-
-    }
-
-    void checkQuanxian() {
-        if (systemName.contains("windows")) {
-            boolean b = false;
-            File file = new File(System.getenv("WINDIR") + "\\test.file");
-            //System.out.println("kkkkkkk "+file.getAbsolutePath());
-            try {
-                file.createNewFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            b = file.exists();
-            file.delete();
-
-            if (!b) {
-                //mainFrame.setVisible(true);
-                if (isVisible) {
-                    JOptionPane.showMessageDialog(null, "请以管理员身份运行! ");
-                }
-                MLog.println("请以管理员身份运行,否则可能无法正常工作! ");
-//                System.exit(0);
-            }
-        }
     }
 
     void loadMapRule() {
@@ -902,7 +811,7 @@ public class ClientUI implements ClientUII, WindowListener {
             		cfg.getRecentAddressList().add(list.get(i).toString());
 				}
             }
-           
+
             config = cfg;
         } catch (Exception e) {
             e.printStackTrace();
@@ -921,7 +830,7 @@ public class ClientUI implements ClientUII, WindowListener {
                     	addressTxt =text_serverAddress.getSelectedItem().toString();
                     }
                     addressTxt = addressTxt.trim().replaceAll(" ", "");
-                   
+
                     String serverAddress = addressTxt;
                     if (addressTxt.startsWith("[")) {
                         int index = addressTxt.lastIndexOf("]:");
@@ -953,17 +862,17 @@ public class ClientUI implements ClientUII, WindowListener {
                     json.put("protocal", protocal);
                     json.put("auto_start", config.isAutoStart());
 
-                    
+
                     if(text_serverAddress.getModel().getSize()>0){
                     	text_serverAddress.removeItem(addressTxt);
                     }
                     text_serverAddress.insertItemAt(addressTxt, 0);
                     text_serverAddress.setSelectedItem(addressTxt);;
-                    
+
 
                     JSONArray recentAddressList=new JSONArray();
-                    
-                    
+
+
                     int size=text_serverAddress.getModel().getSize();
                     for(int n=0;n<size;n++){
                     	String address=text_serverAddress.getModel().getElementAt(n).toString();
@@ -972,8 +881,8 @@ public class ClientUI implements ClientUII, WindowListener {
                     	}
                     }
                     json.put("recent_address_list", recentAddressList);
-                    
-                    
+
+
                     saveFile(json.toJSONString().getBytes("utf-8"), configFilePath);
                     config.setServerAddress(serverAddress);
                     config.setServerPort(serverPort);
@@ -1087,11 +996,11 @@ public class ClientUI implements ClientUII, WindowListener {
         button.setFocusPainted(false);
         return button;
     }
-    
+
     JButton createButton_Link(String name,final String url) {
         JButton button = new JButton(name);
         Color c = new Color(0,0,255);
-        button.setBackground(c);  
+        button.setBackground(c);
         button.setForeground(new Color(100,100,255));
         button.setBorderPainted(false);
         button.setOpaque(false);
@@ -1107,7 +1016,7 @@ public class ClientUI implements ClientUII, WindowListener {
         });
         return button;
     }
-    
+
 
     boolean haveNewVersion() {
         return serverVersion > localVersion;
@@ -1187,7 +1096,7 @@ public class ClientUI implements ClientUII, WindowListener {
 
         });
     }
-    
+
 	public static void setAutoRun(boolean run) {
 		String s = new File(".").getAbsolutePath();
 		String currentPaht = s.substring(0, s.length() - 1);
@@ -1264,17 +1173,14 @@ public class ClientUI implements ClientUII, WindowListener {
     public void windowDeactivated(WindowEvent e) {
     }
 
-
     @Override
     public boolean login() {
         return false;
     }
 
-
     @Override
     public boolean updateNode(boolean testSpeed) {
         return true;
-
     }
 
     public boolean isOsx_fw_pf() {

@@ -2,10 +2,14 @@
 
 package net.fs.client;
 
-import org.apache.commons.cli.*;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 
 public class FSClient {
-
     public static void main(String[] args) {
         CommandLineParser parser = new DefaultParser();
         Options options = new Options();
@@ -22,7 +26,7 @@ public class FSClient {
 
         boolean visible=!commandLine.hasOption("b");
         boolean min=commandLine.hasOption("min");
-        
+
         new ClientUI(visible,min);
     }
 }
