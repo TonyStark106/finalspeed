@@ -33,7 +33,6 @@ import java.awt.Cursor;
 import java.awt.Desktop;
 import java.awt.Font;
 import java.awt.Insets;
-import java.awt.SystemTray;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -60,62 +59,40 @@ import java.util.Properties;
 import java.util.StringTokenizer;
 
 public class ClientUI implements ClientUII, WindowListener {
+    private static final int CLIENT_VERSION = 5;
+    private static final String CONFIG_FILE_PATH = "client_config.json";
+    private static final String LOGO_IMG = "img/offline.png";
 
     JFrame mainFrame;
 
-    JComponent mainPanel;
-
-    JComboBox text_serverAddress;
+    private JComboBox text_serverAddress;
 
     MapClient mapClient;
 
-    JLabel uploadSpeedField, downloadSpeedField, stateText;
+    private JLabel downloadSpeedField;
+    private JLabel stateText;
+    private ClientConfig config;
 
-    ClientConfig config = null;
+    private int serverVersion = -1;
 
-    String configFilePath = "client_config.json";
-
-    String logoImg = "img/offline.png";
-
-    String offlineImg = "img/offline.png";
-
-    String name = "FinalSpeed";
-
-    private SystemTray tray;
-
-    int serverVersion = -1;
-
-    int localVersion = 5;
-
-    boolean checkingUpdate = false;
-
-    String domain = "";
-
-    String homeUrl;
+    private String homeUrl;
 
     public static ClientUI ui;
 
-    JTextField text_ds, text_us;
+    private JTextField text_ds;
+    private JTextField text_us;
 
-    boolean ky = true;
-
-    String errorMsg = "保存失败请检查输入信息!";
-
-    JButton button_site;
-
-    MapRuleListModel model;
+    private MapRuleListModel model;
 
     public MapRuleListTable tcpMapRuleListTable;
 
-    boolean capSuccess = false;
-    Exception capException = null;
-    boolean b1 = false;
+    private boolean b1 = false;
 
-    boolean success_firewall_windows = true;
+    private boolean success_firewall_windows = true;
 
-    boolean success_firewall_osx = true;
+    private boolean success_firewall_osx = true;
 
-    String systemName = null;
+    private String systemName = null;
 
     public boolean osx_fw_pf = false;
 
@@ -123,26 +100,21 @@ public class ClientUI implements ClientUII, WindowListener {
 
     public boolean isVisible = true;
 
-    JRadioButton r_tcp, r_udp;
+    private JRadioButton r_tcp;
+    private JRadioButton r_udp;
 
-    String updateUrl;
+    private String updateUrl;
 
-    boolean min=false;
+    private LogFrame logFrame;
 
-    LogFrame logFrame;
-
-    LogOutputStream los;
-
-    boolean tcpEnable=true;
+    private LogOutputStream los;
 
     {
-        domain = "ip4a.com";
         homeUrl = "http://www.ip4a.com/?client_fs";
         updateUrl = "http://fs.d1sm.net/finalspeed/update.properties";
     }
 
     ClientUI(final boolean isVisible,boolean min) {
-    	this.min=min;
         setVisible(isVisible);
 
         if(isVisible){
@@ -156,11 +128,11 @@ public class ClientUI implements ClientUII, WindowListener {
         MLog.info("System: " + systemName + " " + System.getProperty("os.version"));
         ui = this;
         mainFrame = new JFrame();
-        mainFrame.setIconImage(Toolkit.getDefaultToolkit().getImage(logoImg));
+        mainFrame.setIconImage(Toolkit.getDefaultToolkit().getImage(LOGO_IMG));
         initUI();
         loadConfig();
         mainFrame.setTitle("FinalSpeed 1.2");
-        mainPanel = (JPanel) mainFrame.getContentPane();
+        JComponent mainPanel = (JPanel) mainFrame.getContentPane();
         mainPanel.setLayout(new MigLayout("align center , insets 10 10 10 10"));
         mainPanel.setBorder(null);
 
@@ -199,69 +171,43 @@ public class ClientUI implements ClientUII, WindowListener {
 
         mapPanel.add(tablePanel, "height 50:160:1024 ,growy,width :250:,wrap");
         tablePanel.addMouseListener(new MouseListener() {
-
             public void mouseClicked(MouseEvent e) {
                 tcpMapRuleListTable.clearSelection();
             }
 
-            public void mouseEntered(MouseEvent e) {
-            }
+            public void mouseEntered(MouseEvent e) {}
 
-            public void mouseExited(MouseEvent e) {
-            }
+            public void mouseExited(MouseEvent e) {}
 
-            public void mousePressed(MouseEvent e) {
-            }
+            public void mousePressed(MouseEvent e) {}
 
-            public void mouseReleased(MouseEvent e) {
-            }
-
+            public void mouseReleased(MouseEvent e) {}
         });
-
 
         JPanel p9 = new JPanel();
         p9.setLayout(new MigLayout("insets 1 0 3 0 "));
         mapPanel.add(p9, "align center,wrap");
         JButton button_add = createButton("添加");
         p9.add(button_add);
-        button_add.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                AddMapFrame sf = new AddMapFrame(ui, mainFrame, null, false);
-            }
-
-        });
+        button_add.addActionListener(e -> new AddMapFrame(ui, mainFrame, null, false));
         JButton button_edit = createButton("修改");
         p9.add(button_edit);
-        button_edit.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int index = tcpMapRuleListTable.getSelectedRow();
-                if (index > -1) {
-                    MapRule mapRule = model.getMapRuleAt(index);
-                    AddMapFrame sf = new AddMapFrame(ui, mainFrame, mapRule, true);
-                }
+        button_edit.addActionListener(e -> {
+            int index = tcpMapRuleListTable.getSelectedRow();
+            if (index > -1) {
+                MapRule mapRule = model.getMapRuleAt(index);
+                new AddMapFrame(ui, mainFrame, mapRule, true);
             }
-
         });
         JButton button_remove = createButton("删除");
         p9.add(button_remove);
-        button_remove.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-                int index = tcpMapRuleListTable.getSelectedRow();
-                if (index > -1) {
-                    MapRule mapRule = model.getMapRuleAt(index);
-
-                    mapClient.portMapManager.removeMapRule(mapRule.getName());
-                    loadMapRule();
-                }
+        button_remove.addActionListener(e -> {
+            int index = tcpMapRuleListTable.getSelectedRow();
+            if (index > -1) {
+                MapRule mapRule = model.getMapRuleAt(index);
+                mapClient.portMapManager.removeMapRule(mapRule.getName());
+                loadMapRule();
             }
-
         });
 
         JPanel pa = new JPanel();
@@ -282,14 +228,6 @@ public class ClientUI implements ClientUII, WindowListener {
         text_serverAddress.setRenderer(renderer);
         text_serverAddress.setEditable(true);
 
-        text_serverAddress.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				//System.out.println(text_serverAddress.getSelectedItem().toString());
-			}
-		});
-
         for(int n=0;n<config.getRecentAddressList().size();n++){
         	text_serverAddress.addItem(config.getRecentAddressList().get(n));
         }
@@ -300,24 +238,20 @@ public class ClientUI implements ClientUII, WindowListener {
 
         JButton button_removeAddress=createButton("删除");
         p1.add(button_removeAddress, "");
-        button_removeAddress.addActionListener(new ActionListener() {
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				String address=text_serverAddress.getSelectedItem().toString();
-				if(!address.equals("")){
-					int result= JOptionPane.showConfirmDialog(mainFrame, "确定删除吗?","消息", JOptionPane.YES_NO_OPTION);
-					if(result==JOptionPane.OK_OPTION){
-						text_serverAddress.removeItem(address);
-						String selectText="";
-						if(text_serverAddress.getModel().getSize()>0){
-							selectText=text_serverAddress.getModel().getElementAt(0).toString();
-						}
-						text_serverAddress.setSelectedItem(selectText);
-					}
-				}
-			}
-		});
+        button_removeAddress.addActionListener(e -> {
+            String address=text_serverAddress.getSelectedItem().toString();
+            if(!address.equals("")){
+                int result= JOptionPane.showConfirmDialog(mainFrame, "确定删除吗?","消息", JOptionPane.YES_NO_OPTION);
+                if(result==JOptionPane.OK_OPTION){
+                    text_serverAddress.removeItem(address);
+                    String selectText="";
+                    if(text_serverAddress.getModel().getSize()>0){
+                        selectText=text_serverAddress.getModel().getElementAt(0).toString();
+                    }
+                    text_serverAddress.setSelectedItem(selectText);
+                }
+            }
+        });
 
         JPanel panelr = new JPanel();
         pa.add(panelr, "wrap");
@@ -338,7 +272,6 @@ public class ClientUI implements ClientUII, WindowListener {
             r_tcp.setSelected(true);
         }
 
-
         JPanel sp = new JPanel();
         sp.setBorder(BorderFactory.createTitledBorder("物理带宽"));
         sp.setLayout(new MigLayout("insets 5 5 5 5"));
@@ -354,14 +287,7 @@ public class ClientUI implements ClientUII, WindowListener {
 
         JButton button_set_speed = createButton("设置带宽");
         pa1.add(button_set_speed);
-        button_set_speed.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                SpeedSetFrame sf = new SpeedSetFrame(ui, mainFrame);
-            }
-        });
-
+        button_set_speed.addActionListener(e -> new SpeedSetFrame(ui, mainFrame));
 
         JPanel pa2 = new JPanel();
         sp.add(pa2, "wrap");
@@ -373,44 +299,34 @@ public class ClientUI implements ClientUII, WindowListener {
         text_us.setHorizontalAlignment(JTextField.RIGHT);
         text_us.setEditable(false);
 
-
         JPanel sp2 = new JPanel();
         sp2.setLayout(new MigLayout("insets 0 0 0 0"));
         loginPanel.add(sp2, "align center,  wrap");
 
         final JCheckBox cb=new JCheckBox("开机启动",config.isAutoStart());
         sp2.add(cb, "align center");
-		cb.addActionListener(new ActionListener(){
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				config.setAutoStart(cb.isSelected());
-				saveConfig();
-				setAutoRun(config.isAutoStart());
-			}
-
-		});
+		cb.addActionListener(e -> {
+            config.setAutoStart(cb.isSelected());
+            saveConfig();
+            setAutoRun(config.isAutoStart());
+        });
 
 		JButton button_show_log=createButton("显示日志");
 		sp2.add(button_show_log,"wrap");
-		button_show_log.addActionListener(new ActionListener() {
+		button_show_log.addActionListener(e -> {
+            if(logFrame==null){
+                 logFrame=new LogFrame(ui);
+                 logFrame.setSize(700, 400);
+                 logFrame.setLocationRelativeTo(null);
+                 los.addListener(logFrame);
 
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if(logFrame==null){
-					 logFrame=new LogFrame(ui);
-		             logFrame.setSize(700, 400);
-		             logFrame.setLocationRelativeTo(null);
-		             los.addListener(logFrame);
-
-		             if(los.getBuffer()!=null){
-		            	logFrame.showText(los.getBuffer().toString());
-		     			los.setBuffer(null);
-		             }
-				}
-				logFrame.setVisible(true);
-			}
-		});
+                 if(los.getBuffer()!=null){
+                    logFrame.showText(los.getBuffer().toString());
+                     los.setBuffer(null);
+                 }
+            }
+            logFrame.setVisible(true);
+        });
 
         JPanel p4 = new JPanel();
         p4.setLayout(new MigLayout("insets 5 0 0 0 "));
@@ -418,42 +334,23 @@ public class ClientUI implements ClientUII, WindowListener {
         JButton button_save = createButton("确定");
         p4.add(button_save);
 
-        button_site = createButton("网站");
+        JButton button_site = createButton("网站");
         p4.add(button_site);
-        button_site.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                openUrl(homeUrl);
-            }
-        });
+        button_site.addActionListener(e -> openUrl(homeUrl));
 
         JButton button_exit = createButton("退出");
         p4.add(button_exit);
-        button_exit.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                System.exit(0);
+        button_exit.addActionListener(e -> System.exit(0));
+        button_save.addActionListener(e -> {
+            if (config.getDownloadSpeed() == 0 || config.getUploadSpeed() == 0) {
+                SpeedSetFrame sf = new SpeedSetFrame(ui, mainFrame);
             }
+            setMessage("");
+            saveConfig();
         });
-        button_save.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (config.getDownloadSpeed() == 0 || config.getUploadSpeed() == 0) {
-                    SpeedSetFrame sf = new SpeedSetFrame(ui, mainFrame);
-                }
-                setMessage("");
-                saveConfig();
-            }
-        });
-
-
 
         stateText = new JLabel("");
         mainPanel.add(stateText, "align right ,wrap");
-
 
         JPanel p5 = new JPanel();
         p5.setLayout(new MigLayout("insets 5 0 0 0 "));
@@ -472,16 +369,6 @@ public class ClientUI implements ClientUII, WindowListener {
 
         text_serverAddress.setSelectedItem(getServerAddressFromConfig());
 
-        if (config.getRemoteAddress() != null && !config.getRemoteAddress().equals("") && config.getRemotePort() > 0) {
-            String remoteAddressTxt = config.getRemoteAddress() + ":" + config.getRemotePort();
-        }
-
-        int width = 500;
-        if (systemName.contains("os x")) {
-            width = 600;
-        }
-        //mainFrame.setSize(width, 380);
-
         mainFrame.pack();
 
         mainFrame.setLocationRelativeTo(null);
@@ -497,7 +384,6 @@ public class ClientUI implements ClientUII, WindowListener {
                 JOptionPane.showMessageDialog(mainFrame, "启动windows防火墙失败,请先运行防火墙服务.");
             }
             MLog.println("启动windows防火墙失败,请先运行防火墙服务.");
-           // System.exit(0);
         }
         if (!success_firewall_osx) {
         	tcpEnvSuccess=false;
@@ -506,7 +392,6 @@ public class ClientUI implements ClientUII, WindowListener {
                 JOptionPane.showMessageDialog(mainFrame, "启动ipfw/pfctl防火墙失败,请先安装.");
             }
             MLog.println("启动ipfw/pfctl防火墙失败,请先安装.");
-            //System.exit(0);
         }
 
         Thread thread = new Thread() {
@@ -526,38 +411,21 @@ public class ClientUI implements ClientUII, WindowListener {
         } catch (InterruptedException e1) {
             e1.printStackTrace();
         }
-        //JOptionPane.showMessageDialog(mainFrame,System.getProperty("os.name"));
         if (!b1) {
         	tcpEnvSuccess=false;
             try {
-                SwingUtilities.invokeAndWait(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        String msg = "启动失败,请先安装libpcap,否则无法使用tcp协议";
-                        if (systemName.contains("windows")) {
-                            msg = "启动失败,请先安装winpcap,否则无法使用tcp协议";
-                        }
-                        if (isVisible) {
-                            mainFrame.setVisible(true);
-                            JOptionPane.showMessageDialog(mainFrame, msg);
-                        }
-                        MLog.println(msg);
-                        if (systemName.contains("windows")) {
-                            try {
-                                Process p = Runtime.getRuntime().exec("winpcap_install.exe", null);
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                            tcpEnable=false;
-                            //System.exit(0);
-                        }
+                SwingUtilities.invokeAndWait(() -> {
+                    String msg = "启动失败,请先安装libpcap,否则无法使用tcp协议";
+                    if (systemName.contains("windows")) {
+                        msg = "启动失败,请先安装winpcap,否则无法使用tcp协议";
                     }
-
+                    if (isVisible) {
+                        mainFrame.setVisible(true);
+                        JOptionPane.showMessageDialog(mainFrame, msg);
+                    }
+                    MLog.println(msg);
                 });
-            } catch (InvocationTargetException e2) {
-                e2.printStackTrace();
-            } catch (InterruptedException e2) {
+            } catch (InvocationTargetException | InterruptedException e2) {
                 e2.printStackTrace();
             }
         }
@@ -566,47 +434,35 @@ public class ClientUI implements ClientUII, WindowListener {
             mapClient = new MapClient(this,tcpEnvSuccess);
         } catch (final Exception e1) {
             e1.printStackTrace();
-            capException = e1;
-            //System.exit(0);
         }
 
         try {
-            SwingUtilities.invokeAndWait(new Runnable() {
-
-                @Override
-                public void run() {
-
-                    if (!mapClient.route_tcp.capEnv.tcpEnable) {
-                        if (isVisible) {
-                            mainFrame.setVisible(true);
-                        }
-                        r_tcp.setEnabled(false);
-                        r_udp.setSelected(true);
-                        //JOptionPane.showMessageDialog(mainFrame,"无可用网络接口,只能使用udp协议.");
+            SwingUtilities.invokeAndWait(() -> {
+                if (!mapClient.route_tcp.capEnv.tcpEnable) {
+                    if (isVisible) {
+                        mainFrame.setVisible(true);
                     }
-
-                    //System.exit(0);
+                    r_tcp.setEnabled(false);
+                    r_udp.setSelected(true);
                 }
-
             });
-        } catch (InvocationTargetException e2) {
-            e2.printStackTrace();
-        } catch (InterruptedException e2) {
+        } catch (InvocationTargetException | InterruptedException e2) {
             e2.printStackTrace();
         }
 
         mapClient.setUi(this);
 
-        mapClient.setMapServer(config.getServerAddress(), config.getServerPort(), config.getRemotePort(), null, null, config.isDirect_cn(), config.getProtocal().equals("tcp"),
+        mapClient.setMapServer(
+                config.getServerAddress(),
+                config.getServerPort(),
+                config.getRemotePort(),
+                null,
+                null,
+                config.isDirect_cn(),
+                config.getProtocal().equals("tcp"),
                 null);
 
-        Route.es.execute(new Runnable() {
-
-            @Override
-            public void run() {
-                checkUpdate();
-            }
-        });
+        Route.es.execute(this::checkUpdate);
 
         setSpeed(config.getDownloadSpeed(), config.getUploadSpeed());
         if (isVisible&!min) {
@@ -616,13 +472,11 @@ public class ClientUI implements ClientUII, WindowListener {
         loadMapRule();
 
         if (config.getDownloadSpeed() == 0 || config.getUploadSpeed() == 0) {
-            SpeedSetFrame sf = new SpeedSetFrame(ui, mainFrame);
+            new SpeedSetFrame(ui, mainFrame);
         }
-
-
     }
 
-    String getServerAddressFromConfig(){
+    private String getServerAddressFromConfig(){
     	 String server_addressTxt = config.getServerAddress();
          if (config.getServerAddress() != null && !config.getServerAddress().equals("")) {
              if (config.getServerPort() != 150
@@ -633,18 +487,18 @@ public class ClientUI implements ClientUII, WindowListener {
          return server_addressTxt;
     }
 
-    void checkFireWallOn() {
+    private void checkFireWallOn() {
         if (systemName.contains("os x")) {
             String runFirewall = "ipfw";
             try {
-                final Process p = Runtime.getRuntime().exec(runFirewall, null);
+                Runtime.getRuntime().exec(runFirewall, null);
                 osx_fw_ipfw = true;
             } catch (IOException e) {
                 //e.printStackTrace();
             }
             runFirewall = "pfctl";
             try {
-                final Process p = Runtime.getRuntime().exec(runFirewall, null);
+                Runtime.getRuntime().exec(runFirewall, null);
                 osx_fw_pf = true;
             } catch (IOException e) {
                // e.printStackTrace();
@@ -675,7 +529,6 @@ public class ClientUI implements ClientUII, WindowListener {
                                 }
                             } catch (IOException e) {
                                 e.printStackTrace();
-                                //error();
                                 exit();
                                 break;
                             }
@@ -699,7 +552,6 @@ public class ClientUI implements ClientUII, WindowListener {
                                 }
                             } catch (IOException e) {
                                 e.printStackTrace();
-                                //error();
                                 exit();
                                 break;
                             }
@@ -710,9 +562,7 @@ public class ClientUI implements ClientUII, WindowListener {
             } catch (IOException e) {
                 e.printStackTrace();
                 success_firewall_windows = false;
-                //error();
             }
-
             if (standReadThread != null) {
                 try {
                     standReadThread.join();
@@ -750,22 +600,18 @@ public class ClientUI implements ClientUII, WindowListener {
         text_us.setText(" " + Tools.getSizeStringKB(s2) + "/s ");
         Route.localDownloadSpeed = downloadSpeed;
         Route.localUploadSpeed = config.uploadSpeed;
-
         saveConfig();
     }
 
-
-    void exit() {
+    private void exit() {
         mainFrame.setVisible(false);
         System.exit(0);
     }
 
-    void openUrl(String url) {
+    private void openUrl(String url) {
         try {
             Desktop.getDesktop().browse(new URI(url));
-        } catch (IOException e1) {
-            e1.printStackTrace();
-        } catch (URISyntaxException e1) {
+        } catch (IOException | URISyntaxException e1) {
             e1.printStackTrace();
         }
     }
@@ -774,18 +620,18 @@ public class ClientUI implements ClientUII, WindowListener {
         stateText.setText("状态: " + message);
     }
 
-    ClientConfig loadConfig() {
+    private ClientConfig loadConfig() {
         ClientConfig cfg = new ClientConfig();
-        if (!new File(configFilePath).exists()) {
+        if (!new File(CONFIG_FILE_PATH).exists()) {
             JSONObject json = new JSONObject();
             try {
-                saveFile(json.toJSONString().getBytes(), configFilePath);
+                saveFile(json.toJSONString().getBytes(), CONFIG_FILE_PATH);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
         try {
-            String content = readFileUtf8(configFilePath);
+            String content = readFileUtf8(CONFIG_FILE_PATH);
             JSONObject json = JSONObject.parseObject(content);
             cfg.setServerAddress(json.getString("server_address"));
             cfg.setServerPort(json.getIntValue("server_port"));
@@ -806,12 +652,11 @@ public class ClientUI implements ClientUII, WindowListener {
                 cfg.setAutoStart(json.getBooleanValue("auto_start"));
             }
             if (json.containsKey("recent_address_list")) {
-            	JSONArray list=json.getJSONArray("recent_address_list");
-            	for (int i = 0; i < list.size(); i++) {
-            		cfg.getRecentAddressList().add(list.get(i).toString());
-				}
+            	JSONArray list = json.getJSONArray("recent_address_list");
+                for (Object address : list) {
+                    cfg.getRecentAddressList().add(address.toString());
+                }
             }
-
             config = cfg;
         } catch (Exception e) {
             e.printStackTrace();
@@ -819,13 +664,13 @@ public class ClientUI implements ClientUII, WindowListener {
         return cfg;
     }
 
-    void saveConfig() {
+    private void saveConfig() {
         Thread thread = new Thread() {
             public void run() {
                 boolean success = false;
                 try {
                     int serverPort = 150;
-                    String addressTxt ="";
+                    String addressTxt = "";
                     if(text_serverAddress.getSelectedItem()!=null){
                     	addressTxt =text_serverAddress.getSelectedItem().toString();
                     }
@@ -883,17 +728,15 @@ public class ClientUI implements ClientUII, WindowListener {
                     json.put("recent_address_list", recentAddressList);
 
 
-                    saveFile(json.toJSONString().getBytes("utf-8"), configFilePath);
+                    saveFile(json.toJSONString().getBytes("utf-8"), CONFIG_FILE_PATH);
                     config.setServerAddress(serverAddress);
                     config.setServerPort(serverPort);
                     config.setProtocal(protocal);
                     success = true;
 
                     String realAddress = serverAddress;
-                    if (realAddress != null) {
-                        realAddress = realAddress.replace("[", "");
-                        realAddress = realAddress.replace("]", "");
-                    }
+                    realAddress = realAddress.replace("[", "");
+                    realAddress = realAddress.replace("]", "");
 
                     boolean tcp = protocal.equals("tcp");
 
@@ -904,17 +747,14 @@ public class ClientUI implements ClientUII, WindowListener {
                     e.printStackTrace();
                 } finally {
                     if (!success) {
-                        SwingUtilities.invokeLater(new Runnable() {
-
-                            @Override
-                            public void run() {
-                                JOptionPane.showMessageDialog(mainFrame, errorMsg, "错误", JOptionPane.ERROR_MESSAGE);
-                            }
-                        });
+                        SwingUtilities.invokeLater(() ->
+                                JOptionPane.showMessageDialog(
+                                        mainFrame,
+                                        "保存失败请检查输入信息!",
+                                        "错误",
+                                        JOptionPane.ERROR_MESSAGE));
                     }
                 }
-
-
             }
         };
         thread.start();
@@ -963,21 +803,15 @@ public class ClientUI implements ClientUII, WindowListener {
         return str;
     }
 
-    void saveFile(byte[] data, String path) throws Exception {
-        FileOutputStream fos = null;
-        try {
-            fos = new FileOutputStream(path);
+    private void saveFile(byte[] data, String path) throws IOException {
+        try (FileOutputStream fos = new FileOutputStream(path)) {
             fos.write(data);
-        } catch (Exception e) {
+        } catch (IOException e) {
             if (systemName.contains("windows")) {
                 JOptionPane.showMessageDialog(null, "保存配置文件失败,请尝试以管理员身份运行! " + path);
                 System.exit(0);
             }
             throw e;
-        } finally {
-            if (fos != null) {
-                fos.close();
-            }
         }
     }
 
@@ -990,14 +824,14 @@ public class ClientUI implements ClientUII, WindowListener {
         }
     }
 
-    JButton createButton(String name) {
+    private JButton createButton(String name) {
         JButton button = new JButton(name);
         button.setMargin(new Insets(0, 5, 0, 5));
         button.setFocusPainted(false);
         return button;
     }
 
-    JButton createButton_Link(String name,final String url) {
+    private JButton createButton_Link(String name, final String url) {
         JButton button = new JButton(name);
         Color c = new Color(0,0,255);
         button.setBackground(c);
@@ -1018,13 +852,12 @@ public class ClientUI implements ClientUII, WindowListener {
     }
 
 
-    boolean haveNewVersion() {
-        return serverVersion > localVersion;
+    private boolean haveNewVersion() {
+        return serverVersion > CLIENT_VERSION;
     }
 
     public void checkUpdate() {
         for (int i = 0; i < 3; i++) {
-            checkingUpdate = true;
             try {
                 Properties propServer = new Properties();
                 HttpURLConnection uc = Tools.getConnection(updateUrl);
@@ -1040,12 +873,14 @@ public class ClientUI implements ClientUII, WindowListener {
                 } catch (InterruptedException e1) {
                     e1.printStackTrace();
                 }
-            } finally {
-                checkingUpdate = false;
             }
         }
         if (this.haveNewVersion()) {
-            int option = JOptionPane.showConfirmDialog(mainFrame, "发现新版本,立即更新吗?", "提醒", JOptionPane.WARNING_MESSAGE);
+            int option = JOptionPane.showConfirmDialog(
+                    mainFrame,
+                    "发现新版本,立即更新吗?",
+                    "提醒",
+                    JOptionPane.WARNING_MESSAGE);
             if (option == JOptionPane.YES_OPTION) {
                 openUrl(homeUrl);
             }
@@ -1053,54 +888,49 @@ public class ClientUI implements ClientUII, WindowListener {
 
     }
 
-    void initUI() {
-        SwingUtilities.invokeLater(new Runnable() {
-
-            public void run() {
-                Font font = new Font("宋体", Font.PLAIN, 12);
-                UIManager.put("ToolTip.font", font);
-                UIManager.put("Table.font", font);
-                UIManager.put("TableHeader.font", font);
-                UIManager.put("TextField.font", font);
-                UIManager.put("ComboBox.font", font);
-                UIManager.put("TextField.font", font);
-                UIManager.put("PasswordField.font", font);
-                UIManager.put("TextArea.font,font", font);
-                UIManager.put("TextPane.font", font);
-                UIManager.put("EditorPane.font", font);
-                UIManager.put("FormattedTextField.font", font);
-                UIManager.put("Button.font", font);
-                UIManager.put("CheckBox.font", font);
-                UIManager.put("RadioButton.font", font);
-                UIManager.put("ToggleButton.font", font);
-                UIManager.put("ProgressBar.font", font);
-                UIManager.put("DesktopIcon.font", font);
-                UIManager.put("TitledBorder.font", font);
-                UIManager.put("Label.font", font);
-                UIManager.put("List.font", font);
-                UIManager.put("TabbedPane.font", font);
-                UIManager.put("MenuBar.font", font);
-                UIManager.put("Menu.font", font);
-                UIManager.put("MenuItem.font", font);
-                UIManager.put("PopupMenu.font", font);
-                UIManager.put("CheckBoxMenuItem.font", font);
-                UIManager.put("RadioButtonMenuItem.font", font);
-                UIManager.put("Spinner.font", font);
-                UIManager.put("Tree.font", font);
-                UIManager.put("ToolBar.font", font);
-                UIManager.put("OptionPane.messageFont", font);
-                UIManager.put("OptionPane.buttonFont", font);
-
-                ToolTipManager.sharedInstance().setInitialDelay(130);
-            }
-
+    private void initUI() {
+        SwingUtilities.invokeLater(() -> {
+            Font font = new Font("宋体", Font.PLAIN, 12);
+            UIManager.put("ToolTip.font", font);
+            UIManager.put("Table.font", font);
+            UIManager.put("TableHeader.font", font);
+            UIManager.put("TextField.font", font);
+            UIManager.put("ComboBox.font", font);
+            UIManager.put("TextField.font", font);
+            UIManager.put("PasswordField.font", font);
+            UIManager.put("TextArea.font,font", font);
+            UIManager.put("TextPane.font", font);
+            UIManager.put("EditorPane.font", font);
+            UIManager.put("FormattedTextField.font", font);
+            UIManager.put("Button.font", font);
+            UIManager.put("CheckBox.font", font);
+            UIManager.put("RadioButton.font", font);
+            UIManager.put("ToggleButton.font", font);
+            UIManager.put("ProgressBar.font", font);
+            UIManager.put("DesktopIcon.font", font);
+            UIManager.put("TitledBorder.font", font);
+            UIManager.put("Label.font", font);
+            UIManager.put("List.font", font);
+            UIManager.put("TabbedPane.font", font);
+            UIManager.put("MenuBar.font", font);
+            UIManager.put("Menu.font", font);
+            UIManager.put("MenuItem.font", font);
+            UIManager.put("PopupMenu.font", font);
+            UIManager.put("CheckBoxMenuItem.font", font);
+            UIManager.put("RadioButtonMenuItem.font", font);
+            UIManager.put("Spinner.font", font);
+            UIManager.put("Tree.font", font);
+            UIManager.put("ToolBar.font", font);
+            UIManager.put("OptionPane.messageFont", font);
+            UIManager.put("OptionPane.buttonFont", font);
+            ToolTipManager.sharedInstance().setInitialDelay(130);
         });
     }
 
 	public static void setAutoRun(boolean run) {
 		String s = new File(".").getAbsolutePath();
 		String currentPaht = s.substring(0, s.length() - 1);
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		StringTokenizer st = new StringTokenizer(currentPaht, "\\");
 		while (st.hasMoreTokens()) {
 			sb.append(st.nextToken());
@@ -1125,12 +955,11 @@ public class ClientUI implements ClientUII, WindowListener {
 			file = new File("import.reg");
 			FileWriter fw = new FileWriter(file);
 			PrintWriter pw = new PrintWriter(fw);
-			for (int i = 0; i < list.size(); i++) {
-				String ss = list.get(i);
-				if (!ss.equals("")) {
-					pw.println(ss);
-				}
-			}
+            for (String str : list) {
+                if (!str.equals("")) {
+                    pw.println(str);
+                }
+            }
 			pw.flush();
 			pw.close();
 			Process p = Runtime.getRuntime().exec("regedit /s " + "import.reg");
@@ -1145,8 +974,7 @@ public class ClientUI implements ClientUII, WindowListener {
 	}
 
     @Override
-    public void windowOpened(WindowEvent e) {
-    }
+    public void windowOpened(WindowEvent e) {}
 
     @Override
     public void windowClosing(WindowEvent e) {
@@ -1154,24 +982,19 @@ public class ClientUI implements ClientUII, WindowListener {
     }
 
     @Override
-    public void windowClosed(WindowEvent e) {
-    }
+    public void windowClosed(WindowEvent e) {}
 
     @Override
-    public void windowIconified(WindowEvent e) {
-    }
+    public void windowIconified(WindowEvent e) {}
 
     @Override
-    public void windowDeiconified(WindowEvent e) {
-    }
+    public void windowDeiconified(WindowEvent e) {}
 
     @Override
-    public void windowActivated(WindowEvent e) {
-    }
+    public void windowActivated(WindowEvent e) {}
 
     @Override
-    public void windowDeactivated(WindowEvent e) {
-    }
+    public void windowDeactivated(WindowEvent e) {}
 
     @Override
     public boolean login() {
