@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Class-Path: pcap4j-packetfactory-static.jar miglayout-swing.jar common
  s-cli-1.3.1.jar pcap4j-core.jar fastjson-1.1.6.jar jna.jar slf4j-api-
- 1.6.6.jar slf4j-nop-1.6.1.jar
+ 1.6.6.jar slf4j-nop-1.6.1.jar gson-2.6.2.jar
 Main-Class: net.fs.client.FSClient
 

@@ -14,7 +14,7 @@ public class FSClient {
         CommandLineParser parser = new DefaultParser();
         Options options = new Options();
         options.addOption("b", "back", false, "有此参数则运行CLI版本");
-        options.addOption("min", "minimize",false, "启动窗口最小化");
+        options.addOption("min", "minimize", false, "启动窗口最小化");
         CommandLine commandLine;
         try {
             commandLine = parser.parse(options, args);
@@ -24,9 +24,9 @@ public class FSClient {
             return;
         }
 
-        boolean visible=!commandLine.hasOption("b");
-        boolean min=commandLine.hasOption("min");
+        boolean visible = !commandLine.hasOption("b");
+        boolean min = commandLine.hasOption("min");
 
-        new ClientUI(visible,min);
+        new ClientUI(visible, min);
     }
 }

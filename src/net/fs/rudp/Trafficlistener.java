@@ -3,10 +3,10 @@
 package net.fs.rudp;
 
 public interface Trafficlistener {
-	
-	public void trafficDownload(TrafficEvent event);
-	
 
-	public void trafficUpload(TrafficEvent event);
-	
+    public void trafficDownload(TrafficEvent event);
+
+
+    public void trafficUpload(TrafficEvent event);
+
 }

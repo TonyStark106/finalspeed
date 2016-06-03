@@ -2,9 +2,8 @@
 
 package net.fs.client;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import net.fs.rudp.Route;
+import net.fs.utils.JsonUtils;
 import net.fs.utils.LogOutputStream;
 import net.fs.utils.MLog;
 import net.fs.utils.Tools;
@@ -118,7 +117,7 @@ public class ClientUI implements ClientUII, WindowListener {
         setVisible(isVisible);
 
         if(isVisible){
-        	 los=new LogOutputStream(System.out);
+             los=new LogOutputStream(System.out);
              System.setOut(los);
              System.setErr(los);
         }
@@ -229,11 +228,11 @@ public class ClientUI implements ClientUII, WindowListener {
         text_serverAddress.setEditable(true);
 
         for(int n=0;n<config.getRecentAddressList().size();n++){
-        	text_serverAddress.addItem(config.getRecentAddressList().get(n));
+            text_serverAddress.addItem(config.getRecentAddressList().get(n));
         }
 
         if(config.getRecentAddressList().size()==0){
-        	text_serverAddress.setSelectedItem("");
+            text_serverAddress.setSelectedItem("");
         }
 
         JButton button_removeAddress=createButton("删除");
@@ -266,7 +265,7 @@ public class ClientUI implements ClientUII, WindowListener {
         ButtonGroup bg = new ButtonGroup();
         bg.add(r_tcp);
         bg.add(r_udp);
-        if (config.getProtocal().equals("udp")) {
+        if (config.getProtocol().equals("udp")) {
             r_udp.setSelected(true);
         } else {
             r_tcp.setSelected(true);
@@ -305,15 +304,15 @@ public class ClientUI implements ClientUII, WindowListener {
 
         final JCheckBox cb=new JCheckBox("开机启动",config.isAutoStart());
         sp2.add(cb, "align center");
-		cb.addActionListener(e -> {
+        cb.addActionListener(e -> {
             config.setAutoStart(cb.isSelected());
             saveConfig();
             setAutoRun(config.isAutoStart());
         });
 
-		JButton button_show_log=createButton("显示日志");
-		sp2.add(button_show_log,"wrap");
-		button_show_log.addActionListener(e -> {
+        JButton button_show_log=createButton("显示日志");
+        sp2.add(button_show_log,"wrap");
+        button_show_log.addActionListener(e -> {
             if(logFrame==null){
                  logFrame=new LogFrame(ui);
                  logFrame.setSize(700, 400);
@@ -378,7 +377,7 @@ public class ClientUI implements ClientUII, WindowListener {
         boolean tcpEnvSuccess=true;
         checkFireWallOn();
         if (!success_firewall_windows) {
-        	tcpEnvSuccess=false;
+            tcpEnvSuccess=false;
             if (isVisible) {
                 mainFrame.setVisible(true);
                 JOptionPane.showMessageDialog(mainFrame, "启动windows防火墙失败,请先运行防火墙服务.");
@@ -386,7 +385,7 @@ public class ClientUI implements ClientUII, WindowListener {
             MLog.println("启动windows防火墙失败,请先运行防火墙服务.");
         }
         if (!success_firewall_osx) {
-        	tcpEnvSuccess=false;
+            tcpEnvSuccess=false;
             if (isVisible) {
                 mainFrame.setVisible(true);
                 JOptionPane.showMessageDialog(mainFrame, "启动ipfw/pfctl防火墙失败,请先安装.");
@@ -412,7 +411,7 @@ public class ClientUI implements ClientUII, WindowListener {
             e1.printStackTrace();
         }
         if (!b1) {
-        	tcpEnvSuccess=false;
+            tcpEnvSuccess=false;
             try {
                 SwingUtilities.invokeAndWait(() -> {
                     String msg = "启动失败,请先安装libpcap,否则无法使用tcp协议";
@@ -455,11 +454,11 @@ public class ClientUI implements ClientUII, WindowListener {
         mapClient.setMapServer(
                 config.getServerAddress(),
                 config.getServerPort(),
-                config.getRemotePort(),
+                0,
                 null,
                 null,
                 config.isDirect_cn(),
-                config.getProtocal().equals("tcp"),
+                config.getProtocol().equals("tcp"),
                 null);
 
         Route.es.execute(this::checkUpdate);
@@ -477,7 +476,7 @@ public class ClientUI implements ClientUII, WindowListener {
     }
 
     private String getServerAddressFromConfig(){
-    	 String server_addressTxt = config.getServerAddress();
+         String server_addressTxt = config.getServerAddress();
          if (config.getServerAddress() != null && !config.getServerAddress().equals("")) {
              if (config.getServerPort() != 150
                      && config.getServerPort() != 0) {
@@ -599,7 +598,7 @@ public class ClientUI implements ClientUII, WindowListener {
         int s2 = (int) ((float) uploadSpeed * 1.1f);
         text_us.setText(" " + Tools.getSizeStringKB(s2) + "/s ");
         Route.localDownloadSpeed = downloadSpeed;
-        Route.localUploadSpeed = config.uploadSpeed;
+        Route.localUploadSpeed = config.getUploadSpeed();
         saveConfig();
     }
 
@@ -620,48 +619,21 @@ public class ClientUI implements ClientUII, WindowListener {
         stateText.setText("状态: " + message);
     }
 
-    private ClientConfig loadConfig() {
+    private void loadConfig() {
         ClientConfig cfg = new ClientConfig();
         if (!new File(CONFIG_FILE_PATH).exists()) {
-            JSONObject json = new JSONObject();
             try {
-                saveFile(json.toJSONString().getBytes(), CONFIG_FILE_PATH);
+                saveFile(JsonUtils.clientConfigToJson(cfg).getBytes("UTF-8"), CONFIG_FILE_PATH);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
         try {
             String content = readFileUtf8(CONFIG_FILE_PATH);
-            JSONObject json = JSONObject.parseObject(content);
-            cfg.setServerAddress(json.getString("server_address"));
-            cfg.setServerPort(json.getIntValue("server_port"));
-            cfg.setRemotePort(json.getIntValue("remote_port"));
-            cfg.setRemoteAddress(json.getString("remote_address"));
-            if (json.containsKey("direct_cn")) {
-                cfg.setDirect_cn(json.getBooleanValue("direct_cn"));
-            }
-            cfg.setDownloadSpeed(json.getIntValue("download_speed"));
-            cfg.setUploadSpeed(json.getIntValue("upload_speed"));
-            if (json.containsKey("socks5_port")) {
-                cfg.setSocks5Port(json.getIntValue("socks5_port"));
-            }
-            if (json.containsKey("protocal")) {
-                cfg.setProtocal(json.getString("protocal"));
-            }
-            if (json.containsKey("auto_start")) {
-                cfg.setAutoStart(json.getBooleanValue("auto_start"));
-            }
-            if (json.containsKey("recent_address_list")) {
-            	JSONArray list = json.getJSONArray("recent_address_list");
-                for (Object address : list) {
-                    cfg.getRecentAddressList().add(address.toString());
-                }
-            }
-            config = cfg;
+            config = JsonUtils.jsonToClientConfig(content);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return cfg;
     }
 
     private void saveConfig() {
@@ -672,7 +644,7 @@ public class ClientUI implements ClientUII, WindowListener {
                     int serverPort = 150;
                     String addressTxt = "";
                     if(text_serverAddress.getSelectedItem()!=null){
-                    	addressTxt =text_serverAddress.getSelectedItem().toString();
+                        addressTxt =text_serverAddress.getSelectedItem().toString();
                     }
                     addressTxt = addressTxt.trim().replaceAll(" ", "");
 
@@ -698,40 +670,18 @@ public class ClientUI implements ClientUII, WindowListener {
                         protocal = "udp";
                     }
 
-                    JSONObject json = new JSONObject();
-                    json.put("server_address", serverAddress);
-                    json.put("server_port", serverPort);
-                    json.put("download_speed", config.getDownloadSpeed());
-                    json.put("upload_speed", config.getUploadSpeed());
-                    json.put("socks5_port", config.getSocks5Port());
-                    json.put("protocal", protocal);
-                    json.put("auto_start", config.isAutoStart());
-
-
                     if(text_serverAddress.getModel().getSize()>0){
-                    	text_serverAddress.removeItem(addressTxt);
+                        text_serverAddress.removeItem(addressTxt);
                     }
                     text_serverAddress.insertItemAt(addressTxt, 0);
                     text_serverAddress.setSelectedItem(addressTxt);;
 
-
-                    JSONArray recentAddressList=new JSONArray();
-
-
-                    int size=text_serverAddress.getModel().getSize();
-                    for(int n=0;n<size;n++){
-                    	String address=text_serverAddress.getModel().getElementAt(n).toString();
-                    	if(!address.equals("")){
-                    		recentAddressList.add(address);
-                    	}
-                    }
-                    json.put("recent_address_list", recentAddressList);
-
-
-                    saveFile(json.toJSONString().getBytes("utf-8"), CONFIG_FILE_PATH);
                     config.setServerAddress(serverAddress);
                     config.setServerPort(serverPort);
-                    config.setProtocal(protocal);
+                    config.setProtocol(protocal);
+
+                    saveFile(JsonUtils.clientConfigToJson(config).getBytes("utf-8"), CONFIG_FILE_PATH);
+
                     success = true;
 
                     String realAddress = serverAddress;
@@ -927,51 +877,51 @@ public class ClientUI implements ClientUII, WindowListener {
         });
     }
 
-	public static void setAutoRun(boolean run) {
-		String s = new File(".").getAbsolutePath();
-		String currentPaht = s.substring(0, s.length() - 1);
-		StringBuilder sb = new StringBuilder();
-		StringTokenizer st = new StringTokenizer(currentPaht, "\\");
-		while (st.hasMoreTokens()) {
-			sb.append(st.nextToken());
-			sb.append("\\\\");
-		}
-		ArrayList<String> list = new ArrayList<String>();
-		list.add("Windows Registry Editor Version 5.00");
-		String name="fsclient";
-//		if(PMClientUI.mc){
-//			name="wlg_mc";
-//		}
-		if (run) {
-			list.add("[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run]");
-			list.add("\""+name+"\"=\"" + sb.toString() + "finalspeedclient.exe -min" + "\"");
-		} else {
-			list.add("[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run]");
-			list.add("\""+name+"\"=-");
-		}
+    public static void setAutoRun(boolean run) {
+        String s = new File(".").getAbsolutePath();
+        String currentPaht = s.substring(0, s.length() - 1);
+        StringBuilder sb = new StringBuilder();
+        StringTokenizer st = new StringTokenizer(currentPaht, "\\");
+        while (st.hasMoreTokens()) {
+            sb.append(st.nextToken());
+            sb.append("\\\\");
+        }
+        ArrayList<String> list = new ArrayList<String>();
+        list.add("Windows Registry Editor Version 5.00");
+        String name="fsclient";
+//        if(PMClientUI.mc){
+//            name="wlg_mc";
+//        }
+        if (run) {
+            list.add("[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run]");
+            list.add("\""+name+"\"=\"" + sb.toString() + "finalspeedclient.exe -min" + "\"");
+        } else {
+            list.add("[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run]");
+            list.add("\""+name+"\"=-");
+        }
 
-		File file = null;
-		try {
-			file = new File("import.reg");
-			FileWriter fw = new FileWriter(file);
-			PrintWriter pw = new PrintWriter(fw);
+        File file = null;
+        try {
+            file = new File("import.reg");
+            FileWriter fw = new FileWriter(file);
+            PrintWriter pw = new PrintWriter(fw);
             for (String str : list) {
                 if (!str.equals("")) {
                     pw.println(str);
                 }
             }
-			pw.flush();
-			pw.close();
-			Process p = Runtime.getRuntime().exec("regedit /s " + "import.reg");
-			p.waitFor();
-		} catch (Exception e1) {
-			// e1.printStackTrace();
-		} finally {
-			if (file != null) {
-				file.delete();
-			}
-		}
-	}
+            pw.flush();
+            pw.close();
+            Process p = Runtime.getRuntime().exec("regedit /s " + "import.reg");
+            p.waitFor();
+        } catch (Exception e1) {
+            // e1.printStackTrace();
+        } finally {
+            if (file != null) {
+                file.delete();
+            }
+        }
+    }
 
     @Override
     public void windowOpened(WindowEvent e) {}
