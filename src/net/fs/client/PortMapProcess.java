@@ -2,12 +2,7 @@
 
 package net.fs.client;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.net.Socket;
-import java.util.Random;
-
+import com.alibaba.fastjson.JSONObject;
 import net.fs.rudp.ClientProcessorInterface;
 import net.fs.rudp.ConnectionUDP;
 import net.fs.rudp.Constant;
@@ -16,7 +11,11 @@ import net.fs.rudp.UDPInputStream;
 import net.fs.rudp.UDPOutputStream;
 import net.fs.utils.MLog;
 
-import com.alibaba.fastjson.JSONObject;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.net.Socket;
+import java.util.Random;
 
 public class PortMapProcess implements ClientProcessorInterface{
 
@@ -94,7 +93,6 @@ public class PortMapProcess implements ClientProcessorInterface{
                                 //String msg="fs服务连接成功,加速端口"+dstPort+"连接失败1";
                                 String msg="端口"+dstPort+"无返回数据";
                                 MLog.println(msg);
-                                ClientUI.ui.setMessage(msg);
                             }
                         }
                     }
@@ -117,17 +115,15 @@ public class PortMapProcess implements ClientProcessorInterface{
                 });
                 success=true;
                 uimessage=("fs服务连接成功");
-                ClientUI.ui.setMessage(uimessage);
+                MLog.println(uimessage);
             }else {
                 close();
                 uimessage="fs服务连接成功,端口"+dstPort+"连接失败2";
-                ClientUI.ui.setMessage(uimessage);
                 MLog.println(uimessage);
             }
         } catch (Exception e1) {
             e1.printStackTrace();
             String msg="fs服务连接失败!";
-            ClientUI.ui.setMessage(msg);
             MLog.println(msg);
         }
 

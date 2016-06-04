@@ -2,31 +2,8 @@
 
 package net.fs.client;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
-
 public class FSClient {
     public static void main(String[] args) {
-        CommandLineParser parser = new DefaultParser();
-        Options options = new Options();
-        options.addOption("b", "back", false, "有此参数则运行CLI版本");
-        options.addOption("min", "minimize", false, "启动窗口最小化");
-        CommandLine commandLine;
-        try {
-            commandLine = parser.parse(options, args);
-        } catch (ParseException e) {
-            HelpFormatter helpFormatter = new HelpFormatter();
-            helpFormatter.printHelp("java -jar finalspeed.jar [-b/--back]", options);
-            return;
-        }
-
-        boolean visible = !commandLine.hasOption("b");
-        boolean min = commandLine.hasOption("min");
-
-        new ClientUI(visible, min);
+        new ClientUI();
     }
 }

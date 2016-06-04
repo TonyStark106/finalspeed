@@ -3,7 +3,6 @@
 package net.fs.client;
 
 import net.fs.rudp.ClientProcessorInterface;
-import net.fs.rudp.ConnectionProcessor;
 import net.fs.rudp.Route;
 import net.fs.rudp.TrafficEvent;
 import net.fs.rudp.Trafficlistener;
@@ -18,17 +17,14 @@ import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.util.HashSet;
-import java.util.Random;
 
 public class MapClient implements Trafficlistener{
-
-    ConnectionProcessor imTunnelProcessor;
 
     Route route_udp,route_tcp;
 
     short routePort=45;
 
-    ClientUII ui;
+    ClientUI ui;
 
     String serverAddress="";
 
@@ -44,10 +40,6 @@ public class MapClient implements Trafficlistener{
 
     int uploadSum=0;
 
-    Thread clientUISpeedUpdateThread;
-
-    int connNum=0;
-
     HashSet<ClientProcessorInterface> processTable=new HashSet<ClientProcessorInterface>();
 
     Object syn_process=new Object();
@@ -56,21 +48,11 @@ public class MapClient implements Trafficlistener{
 
     PortMapManager portMapManager;
 
-    public String mapdstAddress;
-
-    public int mapdstPort;
-
     static int monPort=25874;
 
     String systemName=System.getProperty("os.name").toLowerCase();
 
     boolean useTcp=true;
-
-    long clientId;
-
-    Random ran=new Random();
-
-    boolean tcpEnable;
 
     MapClient(ClientUI ui,boolean tcpEnvSuccess) throws Exception {
         this.ui=ui;
@@ -107,32 +89,12 @@ public class MapClient implements Trafficlistener{
 
         portMapManager=new PortMapManager(this);
 
-        clientUISpeedUpdateThread=new Thread(){
-            public void run(){
-                while(true){
-                    try {
-                        Thread.sleep(500);
-                    } catch (InterruptedException e1) {
-                        e1.printStackTrace();
-                    }
-                    updateUISpeed();
-                }
-            }
-        };
-        clientUISpeedUpdateThread.start();
-
         Route.addTrafficlistener(this);
 
     }
 
     public static MapClient get(){
         return mapClient;
-    }
-
-    private void updateUISpeed(){
-        if(ui!=null){
-            ui.updateUISpeed(connNum,netStatus.getDownSpeed(),netStatus.getUpSpeed());
-        }
     }
 
     public void setMapServer(String serverAddress,int serverPort,int remotePort,String passwordMd5,String password_proxy_Md5,boolean direct_cn,boolean tcp,
@@ -464,11 +426,11 @@ public class MapClient implements Trafficlistener{
         this.useTcp = useTcp;
     }
 
-    public ClientUII getUi() {
+    public ClientUI getUi() {
         return ui;
     }
 
-    public void setUi(ClientUII ui) {
+    public void setUi(ClientUI ui) {
         this.ui = ui;
     }
 
