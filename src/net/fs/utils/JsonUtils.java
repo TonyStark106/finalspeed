@@ -32,7 +32,7 @@ public class JsonUtils {
             config.setServerAddress(json.get(Names.ClientConfig.SERVER_ADDRESS).getAsString());
             config.setServerPort(json.get(Names.ClientConfig.SERVER_PORT).getAsInt());
             if (json.has(Names.ClientConfig.DIRECT_CN)) {
-                config.setDirect_cn(json.get(Names.ClientConfig.DIRECT_CN).getAsBoolean());
+                config.setDirectCn(json.get(Names.ClientConfig.DIRECT_CN).getAsBoolean());
             }
             config.setDownloadSpeed(json.get(Names.ClientConfig.DOWNLOAD_SPEED).getAsInt());
             config.setUploadSpeed(json.get(Names.ClientConfig.UPLOAD_SPEED).getAsInt());
@@ -53,7 +53,7 @@ public class JsonUtils {
         JsonObject json = new JsonObject();
         json.addProperty(Names.ClientConfig.SERVER_ADDRESS, config.getServerAddress());
         json.addProperty(Names.ClientConfig.SERVER_PORT, config.getServerPort());
-        json.addProperty(Names.ClientConfig.DIRECT_CN, config.isDirect_cn());
+        json.addProperty(Names.ClientConfig.DIRECT_CN, config.isDirectCn());
         json.addProperty(Names.ClientConfig.DOWNLOAD_SPEED, config.getDownloadSpeed());
         json.addProperty(Names.ClientConfig.UPLOAD_SPEED, config.getUploadSpeed());
         json.addProperty(Names.ClientConfig.SOCKS5_PORT, config.getSocks5Port());

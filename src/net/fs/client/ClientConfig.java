@@ -2,88 +2,68 @@
 
 package net.fs.client;
 
-import java.util.ArrayList;
-
 public class ClientConfig {
-    private String serverAddress = "";
-    private int serverPort;
-    private int downloadSpeed;
-    private int uploadSpeed;
-    private boolean direct_cn = true;
-    private int socks5Port = 1083;
-    private String protocol = "tcp";
-    private boolean autoStart = false;
-    private ArrayList<String> recentAddressList = new ArrayList<>();
+    private String mServerAddress = "";
+    private int mServerPort;
+    private int mDownloadSpeed;
+    private int mUploadSpeed;
+    private boolean mDirectCn = true;
+    private int mSocks5Port = 1083;
+    private String mProtocol = "tcp";
 
     public String getServerAddress() {
-        return serverAddress;
+        return mServerAddress;
     }
 
     public void setServerAddress(String serverAddress) {
-        this.serverAddress = serverAddress;
+        this.mServerAddress = serverAddress;
     }
 
     public int getServerPort() {
-        return serverPort;
+        return mServerPort;
     }
 
     public void setServerPort(int serverPort) {
-        this.serverPort = serverPort;
+        this.mServerPort = serverPort;
     }
 
-    public boolean isDirect_cn() {
-        return direct_cn;
+    public boolean isDirectCn() {
+        return mDirectCn;
     }
 
-    public void setDirect_cn(boolean direct_cn) {
-        this.direct_cn = direct_cn;
+    public void setDirectCn(boolean direct_cn) {
+        this.mDirectCn = direct_cn;
     }
 
     public int getDownloadSpeed() {
-        return downloadSpeed;
+        return mDownloadSpeed;
     }
 
     public void setDownloadSpeed(int downloadSpeed) {
-        this.downloadSpeed = downloadSpeed;
+        this.mDownloadSpeed = downloadSpeed;
     }
 
     public int getUploadSpeed() {
-        return uploadSpeed;
+        return mUploadSpeed;
     }
 
     public void setUploadSpeed(int uploadSpeed) {
-        this.uploadSpeed = uploadSpeed;
+        this.mUploadSpeed = uploadSpeed;
     }
 
     public int getSocks5Port() {
-        return socks5Port;
+        return mSocks5Port;
     }
 
     public void setSocks5Port(int socks5Port) {
-        this.socks5Port = socks5Port;
+        this.mSocks5Port = socks5Port;
     }
 
     public String getProtocol() {
-        return protocol;
+        return mProtocol;
     }
 
     public void setProtocol(String protocol) {
-        this.protocol = protocol;
-    }
-
-    public boolean isAutoStart() {
-        return autoStart;
-    }
-
-    public void setAutoStart(boolean autoStart) {
-        this.autoStart = autoStart;
-    }
-
-    public ArrayList<String> getRecentAddressList() {
-        return recentAddressList;
-    }
-
-    public void setRecentAddressList(ArrayList<String> recentAddressList) {
-        this.recentAddressList = recentAddressList;
+        this.mProtocol = protocol;
     }
 }

@@ -13,7 +13,6 @@ import org.pcap4j.core.Pcaps;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -33,8 +32,6 @@ import java.awt.Desktop;
 import java.awt.Font;
 import java.awt.Insets;
 import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
@@ -44,18 +41,14 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.Properties;
-import java.util.StringTokenizer;
 
 public class ClientUI implements ClientUII, WindowListener {
     private static final int CLIENT_VERSION = 5;
@@ -227,14 +220,6 @@ public class ClientUI implements ClientUII, WindowListener {
         text_serverAddress.setRenderer(renderer);
         text_serverAddress.setEditable(true);
 
-        for(int n=0;n<config.getRecentAddressList().size();n++){
-            text_serverAddress.addItem(config.getRecentAddressList().get(n));
-        }
-
-        if(config.getRecentAddressList().size()==0){
-            text_serverAddress.setSelectedItem("");
-        }
-
         JButton button_removeAddress=createButton("删除");
         p1.add(button_removeAddress, "");
         button_removeAddress.addActionListener(e -> {
@@ -301,14 +286,6 @@ public class ClientUI implements ClientUII, WindowListener {
         JPanel sp2 = new JPanel();
         sp2.setLayout(new MigLayout("insets 0 0 0 0"));
         loginPanel.add(sp2, "align center,  wrap");
-
-        final JCheckBox cb=new JCheckBox("开机启动",config.isAutoStart());
-        sp2.add(cb, "align center");
-        cb.addActionListener(e -> {
-            config.setAutoStart(cb.isSelected());
-            saveConfig();
-            setAutoRun(config.isAutoStart());
-        });
 
         JButton button_show_log=createButton("显示日志");
         sp2.add(button_show_log,"wrap");
@@ -457,7 +434,7 @@ public class ClientUI implements ClientUII, WindowListener {
                 0,
                 null,
                 null,
-                config.isDirect_cn(),
+                config.isDirectCn(),
                 config.getProtocol().equals("tcp"),
                 null);
 
@@ -690,7 +667,7 @@ public class ClientUI implements ClientUII, WindowListener {
 
                     boolean tcp = protocal.equals("tcp");
 
-                    mapClient.setMapServer(realAddress, serverPort, 0, null, null, config.isDirect_cn(), tcp,
+                    mapClient.setMapServer(realAddress, serverPort, 0, null, null, config.isDirectCn(), tcp,
                             null);
                     mapClient.closeAndTryConnect();
                 } catch (Exception e) {
@@ -791,13 +768,7 @@ public class ClientUI implements ClientUII, WindowListener {
         button.setMargin(new Insets(0, 2, 0, 2));
         button.setFocusPainted(false);
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        button.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                openUrl(url);
-            }
-        });
+        button.addActionListener(e -> openUrl(url));
         return button;
     }
 
@@ -875,52 +846,6 @@ public class ClientUI implements ClientUII, WindowListener {
             UIManager.put("OptionPane.buttonFont", font);
             ToolTipManager.sharedInstance().setInitialDelay(130);
         });
-    }
-
-    public static void setAutoRun(boolean run) {
-        String s = new File(".").getAbsolutePath();
-        String currentPaht = s.substring(0, s.length() - 1);
-        StringBuilder sb = new StringBuilder();
-        StringTokenizer st = new StringTokenizer(currentPaht, "\\");
-        while (st.hasMoreTokens()) {
-            sb.append(st.nextToken());
-            sb.append("\\\\");
-        }
-        ArrayList<String> list = new ArrayList<String>();
-        list.add("Windows Registry Editor Version 5.00");
-        String name="fsclient";
-//        if(PMClientUI.mc){
-//            name="wlg_mc";
-//        }
-        if (run) {
-            list.add("[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run]");
-            list.add("\""+name+"\"=\"" + sb.toString() + "finalspeedclient.exe -min" + "\"");
-        } else {
-            list.add("[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run]");
-            list.add("\""+name+"\"=-");
-        }
-
-        File file = null;
-        try {
-            file = new File("import.reg");
-            FileWriter fw = new FileWriter(file);
-            PrintWriter pw = new PrintWriter(fw);
-            for (String str : list) {
-                if (!str.equals("")) {
-                    pw.println(str);
-                }
-            }
-            pw.flush();
-            pw.close();
-            Process p = Runtime.getRuntime().exec("regedit /s " + "import.reg");
-            p.waitFor();
-        } catch (Exception e1) {
-            // e1.printStackTrace();
-        } finally {
-            if (file != null) {
-                file.delete();
-            }
-        }
     }
 
     @Override
