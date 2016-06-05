@@ -24,7 +24,7 @@ public class MapClient implements Trafficlistener{
 
     short routePort=45;
 
-    ClientUI ui;
+    ClientApplication app;
 
     String serverAddress="";
 
@@ -54,8 +54,8 @@ public class MapClient implements Trafficlistener{
 
     boolean useTcp=true;
 
-    MapClient(ClientUI ui,boolean tcpEnvSuccess) throws Exception {
-        this.ui=ui;
+    MapClient(ClientApplication app, boolean tcpEnvSuccess) throws Exception {
+        this.app = app;
         mapClient=this;
         try {
             final ServerSocket socket=new ServerSocket(monPort);
@@ -130,7 +130,7 @@ public class MapClient implements Trafficlistener{
         try {
             ip = InetAddress.getByName(serverAddress).getHostAddress();
             if(systemName.contains("mac os")){
-                if(ui.isOsx_fw_pf ()){
+                if(app.isOsx_fw_pf ()){
                     String tempPath="./pf.conf";
                     File f=new File(tempPath);
                     File d=f.getParentFile();
@@ -154,7 +154,7 @@ public class MapClient implements Trafficlistener{
                     runCommand(cmd3);
 
                     //f.delete();
-                }else if(ui.isOsx_fw_ipfw()){
+                }else if(app.isOsx_fw_ipfw()){
                     String cmd2="sudo ipfw add 5050 deny tcp from any to "+ip+" "+serverAddress+" out";
                     runCommand(cmd2);
                 }
@@ -329,9 +329,9 @@ public class MapClient implements Trafficlistener{
 
     synchronized public void closeAndTryConnect_Login(boolean testSpeed){
         close();
-        boolean loginOK=ui.login();
+        boolean loginOK= app.login();
         if(loginOK){
-            ui.updateNode(testSpeed);
+            app.updateNode(testSpeed);
             //testPool();
         }
     }
@@ -426,12 +426,8 @@ public class MapClient implements Trafficlistener{
         this.useTcp = useTcp;
     }
 
-    public ClientUI getUi() {
-        return ui;
-    }
-
-    public void setUi(ClientUI ui) {
-        this.ui = ui;
+    public void setApp(ClientApplication app) {
+        this.app = app;
     }
 
 }

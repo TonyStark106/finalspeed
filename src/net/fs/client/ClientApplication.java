@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-public class ClientUI {
+public class ClientApplication {
     private static final String CONFIG_FILE_PATH = "client_config.json";
     private MapClient mMapClient;
     private ClientConfig mConfig;
@@ -24,7 +24,7 @@ public class ClientUI {
     private boolean osx_fw_pf = false;
     private boolean osx_fw_ipfw = false;
 
-    public ClientUI() {
+    public ClientApplication() {
         systemName = System.getProperty("os.name").toLowerCase();
         MLog.info("System: " + systemName + " " + System.getProperty("os.version"));
         loadConfig();
@@ -56,7 +56,7 @@ public class ClientUI {
             e1.printStackTrace();
         }
 
-        mMapClient.setUi(this);
+        mMapClient.setApp(this);
 
         mMapClient.setMapServer(
                 mConfig.getServerAddress(),
@@ -227,5 +227,9 @@ public class ClientUI {
 
     public void setOsx_fw_ipfw(boolean osx_fw_ipfw) {
         this.osx_fw_ipfw = osx_fw_ipfw;
+    }
+
+    public static void run() {
+        new ClientApplication();
     }
 }
