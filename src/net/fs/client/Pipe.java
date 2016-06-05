@@ -11,10 +11,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public class Pipe {
-
-
     int lastTime=-1;
-
 
     boolean readed=false;
 
@@ -31,7 +28,6 @@ public class Pipe {
     int dstPort=-1;
 
     public void pipe(InputStream is,UDPOutputStream tos,int initSpeed,final Pipe p2) throws Exception{
-
         int len=0;
         byte[] buf=new byte[100*1024];
         boolean sendeda=false;
@@ -44,8 +40,6 @@ public class Pipe {
         }
     }
 
-
-
     void sendSleep(long startTime,int speed,int length){
         long needTime=(long) (1000f*length/speed);
         long usedTime=System.currentTimeMillis()-startTime;
@@ -57,7 +51,6 @@ public class Pipe {
             }
         }
     }
-
 
     public void pipe(UDPInputStream tis,OutputStream os,int maxSpeed,ConnectionUDP conn) throws Exception{
         int len=0;
@@ -74,13 +67,10 @@ public class Pipe {
                 sendedb=true;
             }
             if(dstPort>0){
-                if(ClientUI.ui!=null){
-                    if(!msged){
-                        msged=true;
-                        String msg="端口"+dstPort+"连接成功";
-                        MLog.println(msg);
-                    }
-
+                if(!msged){
+                    msged=true;
+                    String msg="端口"+dstPort+"连接成功";
+                    MLog.println(msg);
                 }
             }
             os.write(buf, 0, len);
@@ -90,13 +80,9 @@ public class Pipe {
         }
     }
 
-
-
     public int getReadedLength() {
         return readedLength;
     }
-
-
 
     public void setDstPort(int dstPort) {
         this.dstPort = dstPort;

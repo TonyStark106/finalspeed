@@ -4,7 +4,6 @@ package net.fs.client;
 
 import net.fs.rudp.Route;
 import net.fs.utils.JsonUtils;
-import net.fs.utils.LogOutputStream;
 import net.fs.utils.MLog;
 import org.pcap4j.core.Pcaps;
 
@@ -19,53 +18,19 @@ import java.io.InputStreamReader;
 
 public class ClientUI {
     private static final String CONFIG_FILE_PATH = "client_config.json";
-
-    MapClient mMapClient;
-
+    private MapClient mMapClient;
     private ClientConfig mConfig;
-
-    public static ClientUI ui;
-
-    private boolean success_firewall_windows = true;
-
-    private boolean success_firewall_osx = true;
-
     private String systemName = null;
-
-    public boolean osx_fw_pf = false;
-
-    public boolean osx_fw_ipfw = false;
-
-    public boolean isVisible = true;
-
-    private LogOutputStream los;
+    private boolean osx_fw_pf = false;
+    private boolean osx_fw_ipfw = false;
 
     public ClientUI() {
-        setVisible(isVisible);
-
-        if(isVisible){
-             los=new LogOutputStream(System.out);
-             System.setOut(los);
-             System.setErr(los);
-        }
-
-
         systemName = System.getProperty("os.name").toLowerCase();
         MLog.info("System: " + systemName + " " + System.getProperty("os.version"));
-        ui = this;
         loadConfig();
-
 
         boolean tcpEnvSuccess=true;
         checkFireWallOn();
-        if (!success_firewall_windows) {
-            tcpEnvSuccess=false;
-            MLog.println("启动windows防火墙失败,请先运行防火墙服务.");
-        }
-        if (!success_firewall_osx) {
-            tcpEnvSuccess=false;
-            MLog.println("启动ipfw/pfctl防火墙失败,请先安装.");
-        }
 
         {
             boolean success = false;
@@ -108,6 +73,7 @@ public class ClientUI {
     }
 
     private void checkFireWallOn() {
+        boolean success = true;
         if (systemName.contains("os x")) {
             String runFirewall = "ipfw";
             try {
@@ -123,80 +89,54 @@ public class ClientUI {
             } catch (IOException e) {
                // e.printStackTrace();
             }
-            success_firewall_osx = osx_fw_ipfw | osx_fw_pf;
-        } else if (systemName.contains("linux")) {
-            String runFirewall = "service iptables start";
+            success = osx_fw_ipfw | osx_fw_pf;
         } else if (systemName.contains("windows")) {
             String runFirewall = "netsh advfirewall set allprofiles state on";
-            Thread standReadThread = null;
-            Thread errorReadThread = null;
             try {
-                final Process p = Runtime.getRuntime().exec(runFirewall, null);
-                standReadThread = new Thread() {
-                    public void run() {
-                        InputStream is = p.getInputStream();
-                        BufferedReader localBufferedReader = new BufferedReader(new InputStreamReader(is));
-                        while (true) {
-                            String line;
-                            try {
-                                line = localBufferedReader.readLine();
-                                if (line == null) {
-                                    break;
-                                } else {
-                                    if (line.contains("Windows")) {
-                                        success_firewall_windows = false;
-                                    }
-                                }
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                                exit();
-                                break;
+                Process p = Runtime.getRuntime().exec(runFirewall, null);
+                InputStream is = p.getInputStream();
+                BufferedReader localBufferedReader = new BufferedReader(new InputStreamReader(is));
+                while (true) {
+                    String line;
+                    try {
+                        line = localBufferedReader.readLine();
+                        if (line == null) {
+                            break;
+                        } else {
+                            if (line.contains("Windows")) {
+                                success = false;
                             }
                         }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        exit();
+                        break;
                     }
-                };
-                standReadThread.start();
-
-                errorReadThread = new Thread() {
-                    public void run() {
-                        InputStream is = p.getErrorStream();
-                        BufferedReader localBufferedReader = new BufferedReader(new InputStreamReader(is));
-                        while (true) {
-                            String line;
-                            try {
-                                line = localBufferedReader.readLine();
-                                if (line == null) {
-                                    break;
-                                } else {
-                                    System.out.println("error" + line);
-                                }
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                                exit();
-                                break;
-                            }
+                }
+                is = p.getErrorStream();
+                localBufferedReader = new BufferedReader(new InputStreamReader(is));
+                while (true) {
+                    String line;
+                    try {
+                        line = localBufferedReader.readLine();
+                        if (line == null) {
+                            break;
+                        } else {
+                            System.out.println("error" + line);
                         }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        exit();
+                        break;
                     }
-                };
-                errorReadThread.start();
+                }
             } catch (IOException e) {
                 e.printStackTrace();
-                success_firewall_windows = false;
+                success = false;
             }
-            if (standReadThread != null) {
-                try {
-                    standReadThread.join();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (errorReadThread != null) {
-                try {
-                    errorReadThread.join();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
+        }
+        if (!success) {
+            MLog.println("启动防火墙失败.");
         }
     }
 
@@ -287,9 +227,5 @@ public class ClientUI {
 
     public void setOsx_fw_ipfw(boolean osx_fw_ipfw) {
         this.osx_fw_ipfw = osx_fw_ipfw;
-    }
-
-    public void setVisible(boolean visible) {
-        this.isVisible = visible;
     }
 }
