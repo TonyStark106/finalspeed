@@ -24,7 +24,7 @@ public class MapClient implements Trafficlistener{
 
     short routePort=45;
 
-    ClientApplication app;
+    private ClientApplication mApp;
 
     String serverAddress="";
 
@@ -55,10 +55,10 @@ public class MapClient implements Trafficlistener{
     boolean useTcp=true;
 
     MapClient(ClientApplication app, boolean tcpEnvSuccess) throws Exception {
-        this.app = app;
-        mapClient=this;
+        mApp = app;
+        mapClient = this;
         try {
-            final ServerSocket socket=new ServerSocket(monPort);
+            final ServerSocket socket = new ServerSocket(monPort);
             new Thread(){
                 public void run(){
                     try {
@@ -130,7 +130,7 @@ public class MapClient implements Trafficlistener{
         try {
             ip = InetAddress.getByName(serverAddress).getHostAddress();
             if(systemName.contains("mac os")){
-                if(app.isOsx_fw_pf ()){
+                if(mApp.isOsxFwPf()){
                     String tempPath="./pf.conf";
                     File f=new File(tempPath);
                     File d=f.getParentFile();
@@ -154,7 +154,7 @@ public class MapClient implements Trafficlistener{
                     runCommand(cmd3);
 
                     //f.delete();
-                }else if(app.isOsx_fw_ipfw()){
+                }else if(mApp.isOsxFwIpfw()){
                     String cmd2="sudo ipfw add 5050 deny tcp from any to "+ip+" "+serverAddress+" out";
                     runCommand(cmd2);
                 }
@@ -329,9 +329,9 @@ public class MapClient implements Trafficlistener{
 
     synchronized public void closeAndTryConnect_Login(boolean testSpeed){
         close();
-        boolean loginOK= app.login();
+        boolean loginOK= mApp.login();
         if(loginOK){
-            app.updateNode(testSpeed);
+            mApp.updateNode(testSpeed);
             //testPool();
         }
     }
@@ -425,9 +425,4 @@ public class MapClient implements Trafficlistener{
     public void setUseTcp(boolean useTcp) {
         this.useTcp = useTcp;
     }
-
-    public void setApp(ClientApplication app) {
-        this.app = app;
-    }
-
 }

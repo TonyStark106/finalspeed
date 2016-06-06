@@ -18,15 +18,14 @@ import java.io.InputStreamReader;
 
 public class ClientApplication {
     private static final String CONFIG_FILE_PATH = "client_config.json";
+    private final String mSystemName = System.getProperty("os.name").toLowerCase();
     private MapClient mMapClient;
     private ClientConfig mConfig;
-    private String systemName = null;
-    private boolean osx_fw_pf = false;
-    private boolean osx_fw_ipfw = false;
+    private boolean mOsxFwPf = false;
+    private boolean mOsxFwIpfw = false;
 
     public ClientApplication() {
-        systemName = System.getProperty("os.name").toLowerCase();
-        MLog.info("System: " + systemName + " " + System.getProperty("os.version"));
+        MLog.info("System: " + mSystemName + " " + System.getProperty("os.version"));
         loadConfig();
 
         boolean tcpEnvSuccess=true;
@@ -43,7 +42,7 @@ public class ClientApplication {
             if (!success) {
                 tcpEnvSuccess=false;
                 String msg = "启动失败,请先安装libpcap,否则无法使用tcp协议";
-                if (systemName.contains("windows")) {
+                if (mSystemName.contains("windows")) {
                     msg = "启动失败,请先安装winpcap,否则无法使用tcp协议";
                 }
                 MLog.println(msg);
@@ -55,8 +54,6 @@ public class ClientApplication {
         } catch (final Exception e1) {
             e1.printStackTrace();
         }
-
-        mMapClient.setApp(this);
 
         mMapClient.setMapServer(
                 mConfig.getServerAddress(),
@@ -74,23 +71,19 @@ public class ClientApplication {
 
     private void checkFireWallOn() {
         boolean success = true;
-        if (systemName.contains("os x")) {
+        if (mSystemName.contains("os x")) {
             String runFirewall = "ipfw";
             try {
                 Runtime.getRuntime().exec(runFirewall, null);
-                osx_fw_ipfw = true;
-            } catch (IOException e) {
-                //e.printStackTrace();
-            }
+                mOsxFwIpfw = true;
+            } catch (IOException ignored) {}
             runFirewall = "pfctl";
             try {
                 Runtime.getRuntime().exec(runFirewall, null);
-                osx_fw_pf = true;
-            } catch (IOException e) {
-               // e.printStackTrace();
-            }
-            success = osx_fw_ipfw | osx_fw_pf;
-        } else if (systemName.contains("windows")) {
+                mOsxFwPf = true;
+            } catch (IOException ignored) {}
+            success = mOsxFwIpfw | mOsxFwPf;
+        } else if (mSystemName.contains("windows")) {
             String runFirewall = "netsh advfirewall set allprofiles state on";
             try {
                 Process p = Runtime.getRuntime().exec(runFirewall, null);
@@ -213,20 +206,12 @@ public class ClientApplication {
         return true;
     }
 
-    public boolean isOsx_fw_pf() {
-        return osx_fw_pf;
+    public boolean isOsxFwPf() {
+        return mOsxFwPf;
     }
 
-    public void setOsx_fw_pf(boolean osx_fw_pf) {
-        this.osx_fw_pf = osx_fw_pf;
-    }
-
-    public boolean isOsx_fw_ipfw() {
-        return osx_fw_ipfw;
-    }
-
-    public void setOsx_fw_ipfw(boolean osx_fw_ipfw) {
-        this.osx_fw_ipfw = osx_fw_ipfw;
+    public boolean isOsxFwIpfw() {
+        return mOsxFwIpfw;
     }
 
     public static void run() {
