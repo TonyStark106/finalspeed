@@ -69,7 +69,7 @@ public class Pipe {
             if(dstPort>0){
                 if(!msged){
                     msged=true;
-                    String msg="端口"+dstPort+"连接成功";
+                    String msg="Connected port " + dstPort;
                     MLog.println(msg);
                 }
             }

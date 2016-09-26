@@ -2,14 +2,14 @@
 
 package net.fs.cap;
 
+import net.fs.rudp.Route;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.concurrent.LinkedBlockingQueue;
-
-import net.fs.rudp.Route;
 
 public class VDatagramSocket extends DatagramSocket{
 
@@ -40,7 +40,7 @@ public class VDatagramSocket extends DatagramSocket{
      }
 
     public void send(DatagramPacket p) throws IOException  {
-        TCPTun tun=null;
+        TCPTun tun;
         if(client){
             tun=capEnv.tcpManager.getDefaultTcpTun();
             if(tun!=null){
@@ -60,11 +60,11 @@ public class VDatagramSocket extends DatagramSocket{
             if(tun.preDataReady){
                 tun.sendData(p.getData());
             }else{
-                throw new IOException("隧道未连接!");
+                throw new IOException("Tunnel not connected");
             }
         }else{
 
-            throw new IOException("隧道不存在! "+" thread "+Route.es.getActiveCount()+" "+p.getAddress()+":"+p.getPort());
+            throw new IOException("Tunnel not found :"+" thread "+Route.es.getActiveCount()+" "+p.getAddress()+":"+p.getPort());
         }
     }
 

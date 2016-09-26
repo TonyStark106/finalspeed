@@ -40,12 +40,6 @@ public class ConnectionUDP {
         this.dstIp=dstIp;
         this.dstPort=dstPort;
         this.mode=mode;
-        if(mode==1){
-            //MLog.println("                 发起连接RUDP "+dstIp+":"+dstPort+" connectId "+connectId);
-        }else if(mode==2){
-
-            //MLog.println("                 接受连接RUDP "+dstIp+":"+dstPort+" connectId "+connectId);
-        }
         this.connectId=connectId;
         try {
             sender=new Sender(this);
@@ -60,13 +54,11 @@ public class ConnectionUDP {
             connected=false;
             route.connTable.remove(connectId);
             e.printStackTrace();
-            //#MLog.println("                 连接失败RUDP "+connectId);
             synchronized(this){
                 notifyAll();
             }
             throw e;
         }
-            //#MLog.println("                 连接成功RUDP "+connectId);
             synchronized(this){
                 notifyAll();
             }
@@ -103,7 +95,6 @@ public class ConnectionUDP {
         }
     }
 
-    //完全关闭
     public void destroy(boolean force){
         if(!destroied){
             if((localClosed&&remoteClosed)||force){
@@ -117,10 +108,6 @@ public class ConnectionUDP {
                 clientControl.removeConnection(this);
             }
         }
-    }
-
-    public void close_timeout(){
-        ////#MLog.println("超时关闭RDP连接");
     }
 
     void live(){

@@ -2,11 +2,7 @@
 
 package net.fs.server;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.Socket;
-
+import com.alibaba.fastjson.JSONObject;
 import net.fs.client.Pipe;
 import net.fs.rudp.ConnectionProcessor;
 import net.fs.rudp.ConnectionUDP;
@@ -16,7 +12,10 @@ import net.fs.rudp.UDPInputStream;
 import net.fs.rudp.UDPOutputStream;
 import net.fs.utils.MLog;
 
-import com.alibaba.fastjson.JSONObject;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.Socket;
 
 
 public class MapTunnelProcessor implements ConnectionProcessor{
@@ -90,7 +89,7 @@ public class MapTunnelProcessor implements ConnectionProcessor{
                     }finally{
                         close();
                         if(p1.getReadedLength()==0){
-                            MLog.println("端口"+dstPort+"无返回数据");
+                            MLog.println("No data received from port " + dstPort);
                         }
                     }
                 }

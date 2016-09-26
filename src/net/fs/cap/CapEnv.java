@@ -2,6 +2,29 @@
 
 package net.fs.cap;
 
+import net.fs.rudp.Route;
+import net.fs.utils.ByteShortConvert;
+import net.fs.utils.MLog;
+import org.pcap4j.core.BpfProgram.BpfCompileMode;
+import org.pcap4j.core.NotOpenException;
+import org.pcap4j.core.PacketListener;
+import org.pcap4j.core.PcapHandle;
+import org.pcap4j.core.PcapNativeException;
+import org.pcap4j.core.PcapNetworkInterface;
+import org.pcap4j.core.PcapNetworkInterface.PromiscuousMode;
+import org.pcap4j.core.PcapStat;
+import org.pcap4j.core.Pcaps;
+import org.pcap4j.packet.EthernetPacket;
+import org.pcap4j.packet.EthernetPacket.EthernetHeader;
+import org.pcap4j.packet.IllegalPacket;
+import org.pcap4j.packet.IllegalRawDataException;
+import org.pcap4j.packet.IpV4Packet;
+import org.pcap4j.packet.IpV4Packet.IpV4Header;
+import org.pcap4j.packet.Packet;
+import org.pcap4j.packet.TcpPacket;
+import org.pcap4j.packet.TcpPacket.TcpHeader;
+import org.pcap4j.util.MacAddress;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -13,32 +36,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-
-import net.fs.rudp.Route;
-import net.fs.utils.ByteShortConvert;
-import net.fs.utils.MLog;
-
-import org.pcap4j.core.NotOpenException;
-import org.pcap4j.core.PacketListener;
-import org.pcap4j.core.PcapHandle;
-import org.pcap4j.core.PcapNativeException;
-import org.pcap4j.core.PcapNetworkInterface;
-import org.pcap4j.core.PcapNetworkInterface.PromiscuousMode;
-import org.pcap4j.core.PcapStat;
-import org.pcap4j.core.Pcaps;
-import org.pcap4j.core.BpfProgram.BpfCompileMode;
-import org.pcap4j.packet.EthernetPacket;
-import org.pcap4j.packet.EthernetPacket.EthernetHeader;
-import org.pcap4j.packet.IllegalPacket;
-import org.pcap4j.packet.IllegalRawDataException;
-import org.pcap4j.packet.IpV4Packet;
-import org.pcap4j.packet.IpV4Packet.IpV4Header;
-import org.pcap4j.packet.Packet;
-import org.pcap4j.packet.TcpPacket;
-import org.pcap4j.packet.TcpPacket.TcpHeader;
-import org.pcap4j.util.MacAddress;
 
 
 public class CapEnv {
@@ -110,11 +107,11 @@ public class CapEnv {
                 while(true){
                     if(System.currentTimeMillis()-t>5*1000){
                         for(int i=0;i<10;i++){
-                            MLog.info("休眠恢复... "+(i+1));
+                            MLog.info("Resuming from hibernation... "+(i+1));
                             try {
                                 boolean success=initInterface();
                                 if(success){
-                                    MLog.info("休眠恢复成功 "+(i+1));
+                                    MLog.info("Resumed from hibernation "+(i+1));
                                     break;
                                 }
                             } catch (Exception e1) {
@@ -392,7 +389,6 @@ public class CapEnv {
             } catch (NotOpenException e) {
                 e.printStackTrace();
             }
-            //handle.close();//linux下会阻塞
         }
     }
 
@@ -412,7 +408,7 @@ public class CapEnv {
                 System.arraycopy(pppData, 8, ipData, 0, ipLength);
                 ipV4Packet=IpV4Packet.newPacket(ipData, 0, ipData.length);
             }else {
-                MLog.println("长度不符!");
+                MLog.println("Length mismatch");
             }
         }
         return ipV4Packet;
@@ -456,7 +452,7 @@ public class CapEnv {
         }else {
             tcpManager.removeTun(conn);
             tcpManager.setDefaultTcpTun(null);
-            throw new Exception("创建隧道失败!");
+            throw new Exception("Failed to create tunnel");
         }
     }
 
@@ -478,7 +474,7 @@ public class CapEnv {
             }
         }
         if(address==null){
-            MLog.println("域名解析失败,请检查DNS设置!");
+            MLog.println("Domain name resolution failed");
         }
         final int por=80;
         testIp_tcp=address.getHostAddress();

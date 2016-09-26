@@ -2,17 +2,17 @@
 
 package net.fs.rudp;
 
+import net.fs.rudp.message.AckListMessage;
+import net.fs.rudp.message.CloseMessage_Conn;
+import net.fs.rudp.message.CloseMessage_Stream;
+import net.fs.rudp.message.DataMessage;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
-
-import net.fs.rudp.message.AckListMessage;
-import net.fs.rudp.message.CloseMessage_Conn;
-import net.fs.rudp.message.CloseMessage_Stream;
-import net.fs.rudp.message.DataMessage;
 
 public class Sender {
     DataMessage me2=null;
@@ -125,12 +125,12 @@ public class Sender {
                 sendOffset++;
                 s+=me.getData().length;
                 conn.clientControl.resendMange.addTask(conn, sequence);
-                sequence++;//必须放最后
+                sequence++;
             }else{
-                throw new ConnectException("RDP连接已断开sendData");
+                throw new ConnectException("RDP disconnected sendData");
             }
         }else{
-            throw new ConnectException("RDP连接已经关闭");
+            throw new ConnectException("RDP connection closed");
         }
 
     }

@@ -41,9 +41,10 @@ public class ClientApplication {
             }
             if (!success) {
                 tcpEnvSuccess=false;
-                String msg = "启动失败,请先安装libpcap,否则无法使用tcp协议";
+                MLog.println("Startup failed");
+                String msg = "Missing required library for TCP: libpcap";
                 if (mSystemName.contains("windows")) {
-                    msg = "启动失败,请先安装winpcap,否则无法使用tcp协议";
+                    msg = "Missing required library for TCP: winpcap";
                 }
                 MLog.println(msg);
             }
@@ -129,7 +130,7 @@ public class ClientApplication {
             }
         }
         if (!success) {
-            MLog.println("启动防火墙失败.");
+            MLog.println("Failed to start firewall");
         }
     }
 

@@ -2,11 +2,11 @@
 
 package net.fs.cap;
 
-import java.util.HashMap;
-import java.util.Iterator;
-
 import net.fs.rudp.CopiedIterator;
 import net.fs.utils.MLog;
+
+import java.util.HashMap;
+import java.util.Iterator;
 
 public class TunManager {
 
@@ -59,7 +59,7 @@ public class TunManager {
                         connTable.remove(key);
                         if(capEnv.client){
                             defaultTcpTun=null;
-                            MLog.println("tcp隧道超时");
+                            MLog.println("TCP tunnel timed out");
                         }
                     }
                 }else{

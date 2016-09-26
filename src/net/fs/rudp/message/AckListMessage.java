@@ -2,13 +2,13 @@
 
 package net.fs.rudp.message;
 
-import java.net.DatagramPacket;
-import java.util.ArrayList;
-import java.util.HashMap;
-
 import net.fs.rudp.SendRecord;
 import net.fs.utils.ByteIntConvert;
 import net.fs.utils.ByteShortConvert;
+
+import java.net.DatagramPacket;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 
 
@@ -42,7 +42,6 @@ public class AckListMessage extends Message{
         for(int i=0;i<ackList.size();i++){
             int sequence=(Integer)ackList.get(i);
             ByteIntConvert.toByteArray(sequence, dpData, 10+4*i+8);  //add: sequence
-            ////#MLog.println("发送确认 "+sequence);
         }
 
         int u1=timeId-2;

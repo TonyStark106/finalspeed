@@ -2,12 +2,12 @@
 
 package net.fs.rudp;
 
+import net.fs.utils.MLog;
+
 import java.net.InetAddress;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
-
-import net.fs.utils.MLog;
 
 
 public class ClientManager {
@@ -54,9 +54,7 @@ public class ClientManager {
                         cc.sendPingMessage();
                     }
                 }else {
-                    //超时关闭client
-                    MLog.println("超时关闭client "+cc.dstIp.getHostAddress()+":"+cc.dstPort+" "+new Date());
-//                    System.exit(0);
+                    MLog.println("Timed out "+cc.dstIp.getHostAddress()+":"+cc.dstPort+" "+new Date());
                     synchronized (syn_clientTable) {
                         cc.close();
                     }

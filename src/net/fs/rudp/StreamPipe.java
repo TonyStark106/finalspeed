@@ -81,17 +81,13 @@ public class StreamPipe {
                 int len=0;
                 try {
                     if(preReadData!=null){
-//                        String string=new String(preReadData,0,preReadDataLength);
-//                        Log.println("写预读111 "+string);
                         try {
                             os.write(preReadData,0,preReadDataLength);
                         } catch (IOException e) {
                             e.printStackTrace();
                             return;
                         }
-//                        Log.println("写预读222 ");
                     }
-                    //Log.println("pipe发送 111 "+supserSocketId+" ");
                     boolean parsed=false;
                     try {
                         while((len=is.read(data))>0){
@@ -203,9 +199,7 @@ public class StreamPipe {
     }
 
     void fireClose(){
-        //Log.println("StreamPipe关闭 fireClose111 "+listenerList.size());
         for(PipeListener listener:listenerList){
-            //Log.println("StreamPipe关闭 fireClose222");
             listener.pipeClose();
         }
     }

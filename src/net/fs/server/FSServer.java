@@ -4,6 +4,10 @@
 
 package net.fs.server;
 
+import net.fs.rudp.ConnectionProcessor;
+import net.fs.rudp.Route;
+import net.fs.utils.MLog;
+
 import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.File;
@@ -12,10 +16,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.BindException;
-
-import net.fs.rudp.ConnectionProcessor;
-import net.fs.rudp.Route;
-import net.fs.utils.MLog;
 
 public class FSServer {
 
@@ -80,7 +80,7 @@ public class FSServer {
                         if(success_firewall_windows){
                             setFireWall_windows_tcp();
                         }else{
-                            System.out.println("启动windows防火墙失败,请先运行防火墙服务.");
+                            System.out.println("Failed to start Windows firewall service");
                         }
                     }
                 } catch (Exception e) {
@@ -222,7 +222,6 @@ public class FSServer {
         while (true) {
             int row = getRow("udptun_fs_server");
             if (row > 0) {
-                // MLog.println("删除行 "+row);
                 String cmd = "iptables -D INPUT " + row;
                 runCommand(cmd);
             } else {
@@ -243,7 +242,6 @@ public class FSServer {
         while (true) {
             int row = getRow("tcptun_fs_server");
             if (row > 0) {
-                // MLog.println("删除行 "+row);
                 String cmd = "iptables -D INPUT " + row;
                 runCommand(cmd);
             } else {

@@ -2,9 +2,7 @@
 
 package net.fs.cap;
 
-import java.net.Inet4Address;
-import java.util.ArrayList;
-
+import net.fs.utils.ByteShortConvert;
 import org.pcap4j.packet.EthernetPacket;
 import org.pcap4j.packet.IpV4Packet;
 import org.pcap4j.packet.IpV4Rfc1349Tos;
@@ -22,7 +20,8 @@ import org.pcap4j.packet.namednumber.IpVersion;
 import org.pcap4j.packet.namednumber.TcpPort;
 import org.pcap4j.util.MacAddress;
 
-import net.fs.utils.ByteShortConvert;
+import java.net.Inet4Address;
+import java.util.ArrayList;
 
 public class PacketUtils {
 
@@ -203,7 +202,6 @@ public class PacketUtils {
         //
 
         Packet p = buildIpV4(srcAddress_mac,dstAddrress_mac,builder_ipv4);
-        //System.out.println("自定义确认 "+" identification "+identification+" ack_sequence "+ack_sequence+" # "+tcpPacket.getHeader());
         return p;
 
     }
@@ -287,7 +285,6 @@ public class PacketUtils {
         builder_ipv4.payloadBuilder(builder_tcp);
         //
         Packet p = buildIpV4(srcAddress_mac,dstAddrress_mac,builder_ipv4);
-        //System.out.println("自定义确认 "+" identification "+identification+" ack_sequence "+ack_sequence+" # "+tcpPacket.getHeader());
         return p;
 
     }
@@ -371,7 +368,6 @@ public class PacketUtils {
 //        IpV4Packet p4=builder_ipv4.build();
 //        TcpPacket tcpPacket=builder_tcp.build();
         //selfAckTable.add(identification);
-        //System.out.println("自定义确认 "+" identification "+identification+" ack_sequence "+ack_sequence+" # "+tcpPacket.getHeader());
         return p;
 
     }

@@ -232,7 +232,6 @@ public class MapClient implements Trafficlistener{
         while(true){
             int row=getRow_linux();
             if(row>0){
-                //MLog.println("删除行 "+row);
                 String cmd="iptables -D OUTPUT "+row;
                 runCommand(cmd);
             }else {
@@ -348,14 +347,12 @@ public class MapClient implements Trafficlistener{
     }
 
     public void trafficDownload(TrafficEvent event) {
-        ////#MLog.println("下载 "+event.getTraffic());
         netStatus.addDownload(event.getTraffic());
         lastTrafficTime=System.currentTimeMillis();
         downloadSum+=event.getTraffic();
     }
 
     public void trafficUpload(TrafficEvent event) {
-        ////#MLog.println("上传 "+event.getTraffic());
         netStatus.addUpload(event.getTraffic());
         lastTrafficTime=System.currentTimeMillis();
         uploadSum+=event.getTraffic();

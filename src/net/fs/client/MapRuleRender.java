@@ -2,17 +2,15 @@
 
 package net.fs.client;
 
-import java.awt.Color;
-import java.awt.Component;
+import net.miginfocom.swing.MigLayout;
+import sun.swing.DefaultLookup;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.table.TableCellRenderer;
-
-
-import net.miginfocom.swing.MigLayout;
-import sun.swing.DefaultLookup;
+import java.awt.Color;
+import java.awt.Component;
 
 public class MapRuleRender extends JLabel implements TableCellRenderer {
 
@@ -46,15 +44,8 @@ public class MapRuleRender extends JLabel implements TableCellRenderer {
         if(h!=rowHeight){
             table.setRowHeight(row, rowHeight);
         }
-        String name=rule.getName();
-        if(name==null){
-            name="无";
-        }else if(name.trim().equals("")){
-            name="无";
-        }
-        label_wan_address.setText("名称: "+rule.name+"  加速端口: "+rule.dst_port);
-        label2.setText("本地端口: "+rule.getListen_port());
-
+        label_wan_address.setText("Name: "+rule.name+"  Port: "+rule.dst_port);
+        label2.setText("Local port: "+rule.getListen_port());
     }
 
     @Override

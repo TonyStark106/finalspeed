@@ -2,15 +2,7 @@
 
 package net.fs.cap;
 
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Random;
-
 import net.fs.utils.MLog;
-
 import org.pcap4j.core.NotOpenException;
 import org.pcap4j.core.PcapHandle;
 import org.pcap4j.core.PcapNativeException;
@@ -20,6 +12,13 @@ import org.pcap4j.packet.Packet;
 import org.pcap4j.packet.TcpPacket;
 import org.pcap4j.packet.TcpPacket.TcpHeader;
 import org.pcap4j.util.MacAddress;
+
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Random;
 
 
 public class TCPTun {
@@ -128,7 +127,7 @@ public class TCPTun {
         } catch (Exception e1) {
             e1.printStackTrace();
         }
-        MLog.println("发送第一次握手 "+" ident "+localIdent);
+        MLog.println("Sending SYN message "+" ident "+localIdent);
         MLog.println(""+syncPacket);
 
     }
@@ -167,7 +166,7 @@ public class TCPTun {
                     remoteStartSequence=tcpHeader.getSequenceNumber();
                     remoteSequence=remoteStartSequence+1;
                     remoteSequence_max=remoteSequence;
-                    MLog.println("接收第一次握手 "+remoteAddress.getHostAddress()+":"+remotePort+"->"+localAddress.getHostAddress()+":"+localPort+" ident "+ipV4Header.getIdentification());
+                    MLog.println("Receiving SYN message "+remoteAddress.getHostAddress()+":"+remotePort+"->"+localAddress.getHostAddress()+":"+localPort+" ident "+ipV4Header.getIdentification());
                     MLog.println(""+packet);
                     Packet responePacket=PacketUtils.createSyncAck(
                             capEnv.local_mac,
@@ -182,7 +181,7 @@ public class TCPTun {
                         e.printStackTrace();
                     }
                     localSequence=localStartSequence+1;
-                    MLog.println("发送第二次握手 "+capEnv.local_mac+"->"+capEnv.gateway_mac+" "+localAddress+"->"+" ident "+0);
+                    MLog.println("Sending SYN-ACK message "+capEnv.local_mac+"->"+capEnv.gateway_mac+" "+localAddress+"->"+" ident "+0);
 
                     MLog.println(""+responePacket);
                 }
@@ -191,7 +190,7 @@ public class TCPTun {
                     if(tcpPacket.getPayload()==null){
                         //第三次握手,客户端确认
                         if(tcpHeader.getAcknowledgmentNumber()==localSequence){
-                            MLog.println("接收第三次握手 "+" ident "+ipV4Header.getIdentification());
+                            MLog.println("Receiving ACK message "+" ident "+ipV4Header.getIdentification());
                             MLog.println(packet+"");
                             Thread t1=new Thread(){
                                 public void run(){
@@ -202,11 +201,8 @@ public class TCPTun {
                             connectReady=true;
                         }
                     }
-                    //MLog.println("客户端响应preview\n "+packet);
-                    //MLog.println("request "+tcp.ack());
                     sendedTable_server.remove(tcpHeader.getAcknowledgmentNumber());
                     boolean selfAck=selfAckTable.contains(ipV4Header.getIdentification());
-                    //MLog.println("客户端确认 "+"selfack "+selfAck+" id "+ipV4Header.getIdentification()+" ack_sequence "+tcpHeader.getAcknowledgmentNumberAsLong()+" "+sendedTable_server.size()+"ppppppp "+tcpHeader);
                 }
 
             }else {
@@ -244,7 +240,7 @@ public class TCPTun {
             if(!connectReady){
                 if(tcpHeader.getAck()&&tcpHeader.getSyn()){
                     if(tcpHeader.getAcknowledgmentNumber()==(localStartSequence+1)){
-                        MLog.println("接收第二次握手 "+" ident "+ipV4Header.getIdentification());
+                        MLog.println("Receiving SYN-ACK message "+" ident "+ipV4Header.getIdentification());
                         MLog.println(""+packet);
                         remoteStartSequence=tcpHeader.getSequenceNumber();
                         remoteSequence=remoteStartSequence+1;
@@ -252,13 +248,13 @@ public class TCPTun {
                         Packet p3=PacketUtils.createAck(capEnv.local_mac, capEnv.gateway_mac, capEnv.local_ipv4, localPort, remoteAddress, remotePort, remoteSequence , localSequence,getIdent());
                         try {
                             sendHandle.sendPacket(p3);
-                            MLog.println("发送第三次握手 "+" ident "+localIdent);
+                            MLog.println("Sending ACK message "+" ident "+localIdent);
                             MLog.println(""+p3);
                             connectReady=true;
 
                             byte[] sim=getSimRequestHead(remotePort);
                             sendData(sim);
-                            MLog.println("发送请求 "+" ident "+localIdent);
+                            MLog.println("Sending request "+" ident "+localIdent);
                         } catch (PcapNativeException e) {
                             e.printStackTrace();
                         } catch (NotOpenException e) {
@@ -270,13 +266,12 @@ public class TCPTun {
                 if(tcpPacket.getPayload()!=null){
                     preDataReady=true;
                     onReceiveDataPacket( tcpPacket, tcpHeader, ipV4Header );
-                    MLog.println("接收响应 "+" ident "+ipV4Header.getIdentification());
+                    MLog.println("Receiving response "+" ident "+ipV4Header.getIdentification());
                 }
             }
 
         }else {
             if(tcpPacket.getPayload()!=null){
-                //MLog.println("客户端正式接收数据 "+capClientEnv.vDatagramSocket);
                 onReceiveDataPacket( tcpPacket, tcpHeader, ipV4Header );
                 TunData td=new TunData();
                 td.tun=this;

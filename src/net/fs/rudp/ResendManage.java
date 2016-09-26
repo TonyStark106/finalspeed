@@ -2,7 +2,6 @@
 
 package net.fs.rudp;
 
-import java.util.HashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
 
@@ -50,7 +49,6 @@ public class ResendManage implements Runnable{
                     if(ri.conn.sender.getDataMessage(ri.sequence)!=null){
 
                         if(!ri.conn.stopnow){
-                            //多线程重发容易内存溢出
 //                            Route.es.execute(new Runnable() {
 //
 //                                @Override

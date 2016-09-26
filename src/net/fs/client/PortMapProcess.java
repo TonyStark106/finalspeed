@@ -90,8 +90,7 @@ public class PortMapProcess implements ClientProcessorInterface{
                         }finally{
                             close();
                             if(p2.getReadedLength()==0){
-                                //String msg="fs服务连接成功,加速端口"+dstPort+"连接失败1";
-                                String msg="端口"+dstPort+"无返回数据";
+                                String msg="No data received from port " + dstPort;
                                 MLog.println(msg);
                             }
                         }
@@ -114,16 +113,16 @@ public class PortMapProcess implements ClientProcessorInterface{
 
                 });
                 success=true;
-                uimessage=("fs服务连接成功");
+                uimessage = "fs service connected";
                 MLog.println(uimessage);
             }else {
                 close();
-                uimessage="fs服务连接成功,端口"+dstPort+"连接失败2";
+                uimessage = "fs service connected, failed to connect port " + dstPort;
                 MLog.println(uimessage);
             }
         } catch (Exception e1) {
             e1.printStackTrace();
-            String msg="fs服务连接失败!";
+            String msg="fs service connection failed";
             MLog.println(msg);
         }
 

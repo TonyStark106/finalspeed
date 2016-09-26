@@ -2,18 +2,18 @@
 
 package net.fs.rudp;
 
+import net.fs.rudp.message.PingMessage;
+import net.fs.rudp.message.PingMessage2;
+import net.fs.utils.ByteIntConvert;
+import net.fs.utils.MLog;
+import net.fs.utils.MessageCheck;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Random;
-
-import net.fs.rudp.message.PingMessage;
-import net.fs.rudp.message.PingMessage2;
-import net.fs.utils.ByteIntConvert;
-import net.fs.utils.MLog;
-import net.fs.utils.MessageCheck;
 
 public class ClientControl {
 
@@ -119,9 +119,6 @@ public class ClientControl {
     }
 
     public void sendPacket(DatagramPacket dp) throws IOException{
-
-        //加密
-
         route.sendPacket(dp);
     }
 
@@ -206,7 +203,6 @@ public class ClientControl {
     public void onReceivePing(PingMessage pm){
         if(route.mode==2){
             currentSpeed=pm.getDownloadSpeed()*1024;
-            //#MLog.println("更新对方速度: "+currentSpeed);
         }
     }
 
@@ -237,7 +233,6 @@ public class ClientControl {
         return timeId;
     }
 
-    //纳秒
     public synchronized void sendSleep(long startTime,int length){
         if(route.mode==1){
             currentSpeed=Route.localUploadSpeed;

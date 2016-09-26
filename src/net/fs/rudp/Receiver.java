@@ -1,16 +1,16 @@
 // Copyright (c) 2015 D1SM.net
 
 package net.fs.rudp;
-import java.net.DatagramPacket;
-import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.HashMap;
-
 import net.fs.rudp.message.AckListMessage;
 import net.fs.rudp.message.CloseMessage_Conn;
 import net.fs.rudp.message.CloseMessage_Stream;
 import net.fs.rudp.message.DataMessage;
 import net.fs.utils.MessageCheck;
+
+import java.net.DatagramPacket;
+import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 
 public class Receiver {
@@ -64,26 +64,23 @@ public class Receiver {
             me=receiveTable.get(lastRead+1);
             synchronized (availOb){
                 if(me==null){
-                    //MLog.println("等待中 "+conn.connectId+" "+(lastRead+1));
-
                     try {
                         availOb.wait();
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                     me=receiveTable.get(lastRead+1);
-                    //MLog.println("等待完成aaa "+conn.connectId+" "+(lastRead+1));
                 }
             }
 
         }else{
-            throw new ConnectException("连接未建立");
+            throw new ConnectException("Connection not established");
         }
 
         if(!streamClose){
             checkCloseOffset_Remote();
             if(me==null){
-                throw new ConnectException("连接已断开ccccccc");
+                throw new ConnectException("Disconnected");
             }else {
             }
             conn.sender.sendLastReadDelay();
@@ -97,7 +94,7 @@ public class Receiver {
             //System.out.println("received "+received/1024/1024+"MB");
             return me.getData();
         }else{
-            throw new ConnectException("连接已断开");
+            throw new ConnectException("Disconnected");
         }
     }
 
@@ -179,8 +176,6 @@ public class Receiver {
                     }else if(sType==net.fs.rudp.message.MessageType.sType_CloseMessage_Conn){
                         CloseMessage_Conn cm2=new CloseMessage_Conn(dp);
                         conn.close_remote();
-                    }else{
-                        ////#MLog.println("未处理数据包 "+sType);
                     }
                 }
 
